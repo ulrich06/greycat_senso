@@ -92,6 +92,7 @@ trait Collector extends HttpService with LazyLogging{
       }
     } ~
       (path("get") & get) {
+        //TODO: si pas date, alors current
         parameters('name.as[String], 'date.as[Long]) { (name, date) =>
           val returnObject = new Return
           DataStorage.get(name.replaceAll("\"", ""), date, returnObject)

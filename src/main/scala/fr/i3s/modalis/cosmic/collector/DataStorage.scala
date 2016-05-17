@@ -28,6 +28,7 @@ package fr.i3s.modalis.cosmic.collector
 
 import java.lang.Boolean
 
+import fr.i3s.modalis.cosmic.nodes.SmartCampusNode.SmartCampusFactory
 import org.mwg.core.NoopScheduler
 import org.mwg.task._
 import org.mwg.{Callback, GraphBuilder, Node, Type}
@@ -43,7 +44,7 @@ object DataStorage {
 
 
   // The graph
-  val graph = GraphBuilder.builder().withScheduler(new NoopScheduler()).build()
+  val graph = GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new SmartCampusFactory).build()
 
   /**
     * Initialize the data storage by creating a root node and indexes
@@ -70,7 +71,7 @@ object DataStorage {
   def add(name: String) = {
     graph.connect(new Callback[Boolean] {
       override def on(result: Boolean): Unit = {
-        val node = graph.newNode(0, 0)
+        val node = graph.newNode(0, 0, "SmartCampusNode")
         node.setProperty("name", Type.STRING, name)
         node.setProperty("value", Type.DOUBLE, Double.NaN)
 
@@ -85,6 +86,7 @@ object DataStorage {
     * @param returnObject Return of the callback
     */
   def update(sensorData: SensorData, returnObject: Return) = {
+
     graph.newTask().fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
