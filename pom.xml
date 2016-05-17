@@ -126,7 +126,7 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>SmartCampusCollector</name>
+                            <name>smartcampuscollector</name>
                             <alias></alias>
                             <build>
                                 <assembly>
