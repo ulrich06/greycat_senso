@@ -39,14 +39,21 @@ public class SmartCampusNode extends AbstractNode {
 
     private static final String NAME = "SmartCampusNode";
 
+    private int calls = 0;
+
     private SmartCampusNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
 
     @Override
     public Object get(String propertyName) {
+        calls =+ 1;
         System.out.println("GET " + propertyName);
         return super.get(propertyName);
+    }
+
+    public int getNbCalls() {
+        return calls;
     }
 
 
