@@ -31,7 +31,7 @@ object Launch extends App {
   DataStorage.add("TEMP_CAMPUS")
 
 
-  IO(Http) ? Http.Bind(service, interface = "localhost", port = 8080)
+  IO(Http) ? Http.Bind(service, interface = "localhost", port = 11000)
 
 
 }
