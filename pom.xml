@@ -2,25 +2,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>fr.i3s.modalis.cosmic.collector</groupId>
-    <artifactId>SmartCampus</artifactId>
+    <artifactId>SmartCampusMWDB</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>${project.artifactId}</name>
-    <description>My wonderfull scala app</description>
-    <inceptionYear>2015</inceptionYear>
-    <licenses>
-        <license>
-            <name>My License</name>
-            <url>http://....</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
+    <description>A 'smart' SmartCampus collector</description>
+    <inceptionYear>2016</inceptionYear>
 
     <properties>
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <scala.version>2.11.5</scala.version>
-        <scala.compat.version>2.11</scala.compat.version>
+        <scala.compat.version>2.10</scala.compat.version>
     </properties>
 
     <dependencies>
