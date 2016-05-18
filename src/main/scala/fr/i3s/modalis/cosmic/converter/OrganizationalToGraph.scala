@@ -24,7 +24,7 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic
+package fr.i3s.modalis.cosmic.converter
 
 import java.lang.Boolean
 
