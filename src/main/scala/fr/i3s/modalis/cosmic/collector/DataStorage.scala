@@ -65,7 +65,7 @@ object DataStorage {
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
-      .then(new TaskAction {
+      .`then`(new TaskAction {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
@@ -91,7 +91,7 @@ object DataStorage {
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })
-      .then(new TaskAction {
+      .`then`(new TaskAction {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
@@ -105,7 +105,7 @@ object DataStorage {
   }
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    override def run = _graph.save(new Callback[Boolean] {
+    override def run() = _graph.save(new Callback[Boolean] {
       override def on(result: Boolean): Unit = { if (result) println("Graph saved") else println("An error occurred during the graph saving") }
     })
   })

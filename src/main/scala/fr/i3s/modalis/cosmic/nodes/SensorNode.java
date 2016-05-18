@@ -26,6 +26,8 @@
 
 package fr.i3s.modalis.cosmic.nodes;
 
+import com.typesafe.scalalogging.LazyLogging;
+import com.typesafe.scalalogging.Logger;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractNode;
@@ -35,7 +37,7 @@ import org.mwg.plugin.NodeFactory;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class SensorNode extends AbstractNode {
+public class SensorNode extends AbstractNode{
 
     private static final String NAME = "SensorNode";
 
@@ -48,13 +50,13 @@ public class SensorNode extends AbstractNode {
     @Override
     public Object get(String propertyName) {
         calls = +1;
-        System.out.println("GET " + propertyName);
         return super.get(propertyName);
     }
 
     public int getNbCalls() {
         return calls;
     }
+
 
 
     public static class SensorNodeFactory implements NodeFactory {

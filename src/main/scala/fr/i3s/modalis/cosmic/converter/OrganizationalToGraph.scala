@@ -28,6 +28,7 @@ package fr.i3s.modalis.cosmic.converter
 
 import java.lang.Boolean
 
+import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
 import fr.i3s.modalis.cosmic.organizational.sample.InfraSmartCampus
@@ -39,7 +40,7 @@ import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 18/05/2016.
   */
-object OrganizationalToGraph {
+object OrganizationalToGraph extends LazyLogging{
 
   def convertSensor(s: Sensor, parent: Node, graph: Graph): Unit = {
     graph.connect(new Callback[Boolean] {
@@ -49,6 +50,7 @@ object OrganizationalToGraph {
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
+        logger.debug(s"Created sensor node ${sensorNode.get("name")}")
       }
     })
 
@@ -65,7 +67,7 @@ object OrganizationalToGraph {
         else // It is the root node
           graph.index("root", containerNode, "name", null)
 
-        println("Created node: " + containerNode.get("name"))
+        logger.debug(s"Created container node ${containerNode.get("name")}")
 
         // Adding the node to the graph indexes
         graph.index("nodes", containerNode, "name", null)
@@ -98,7 +100,7 @@ object RunConverter extends App {
     .select(new TaskFunctionSelect {
       override def select(node: Node) = node.get("name").equals("TEMP_CAMPUS")
     })
-    .then(new TaskAction {
+    .`then`(new TaskAction {
       override def eval(context: TaskContext): Unit = {
         println("Ive found " + context.getPreviousResult.asInstanceOf[Array[Node]].length + " results")
         println(context.getPreviousResult.asInstanceOf[Array[Node]].headOption.get.get("name"))

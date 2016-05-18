@@ -8,6 +8,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
+import fr.i3s.modalis.cosmic.TheLabExample
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
@@ -31,7 +32,7 @@ object Launch extends App {
   implicit val timeout = Timeout(5.seconds)
 
 
-  DataStorage.init(OrganizationalToGraph(InfraSmartCampus.catalog,
+  DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
     GraphBuilder.
       builder().
       withScheduler(new NoopScheduler()).
