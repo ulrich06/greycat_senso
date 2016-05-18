@@ -30,9 +30,10 @@ import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
+import fr.i3s.modalis.cosmic.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
 import fr.i3s.modalis.cosmic.organizational.sample.InfraSmartCampus
-import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Sensor}
+import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
 import org.mwg._
 import org.mwg.core.NoopScheduler
 import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
@@ -43,15 +44,24 @@ import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
 object OrganizationalToGraph extends LazyLogging{
 
   def convertSensor(s: Sensor, parent: Node, graph: Graph): Unit = {
+    var sensorNode: Node = null
     graph.connect(new Callback[Boolean] {
+
       override def on(result: Boolean): Unit = {
-        val sensorNode = graph.newTypedNode(0, 0, "SensorNode")
+        sensorNode = graph.newTypedNode(0, 0, "SensorNode")
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
+
+        graph.newTask()
+          .fromIndex("types", s"name=${s.observes.name}")
+          .then(new TaskAction {
+            override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]](0).add("sensors", sensorNode)
+          })
+          .execute()
       }
     })
 
@@ -89,23 +99,40 @@ object OrganizationalToGraph extends LazyLogging{
   }
 
 
+  def buildDataTypeVirtualNodes(patterns: Set[Observation], graph: Graph) = {
+    graph.connect(new Callback[Boolean] {
+      override def on(result: Boolean): Unit = {
+        patterns.foreach(observation => {
+          val node = graph.newTypedNode(0, 0, "ObservationNode")
+          node.setProperty("name", Type.STRING, observation.name)
+          logger.debug(s"Created observation node ${node.get("name")}")
+
+          graph.index("nodes", node, "name", null)
+          graph.index("types", node, "name", null)
+        })
+      }
+    })
+  }
+
   def apply(organizationalModel: Catalog, graph: Graph) = {
     logger.info("Building the graph from " + organizationalModel.name)
+    buildDataTypeVirtualNodes(organizationalModel.patterns, graph)
     convertContainer(organizationalModel.root, None, organizationalModel, graph)
     graph
   }
 }
 
 object RunConverter extends App {
-  val graph = OrganizationalToGraph(InfraSmartCampus.catalog, GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new ContainerNodeFactory).withFactory(new SensorNodeFactory).build())
-  graph.newTask().fromIndexAll("nodes")
+  val graph = OrganizationalToGraph(InfraSmartCampus.catalog, GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new ContainerNodeFactory).withFactory(new SensorNodeFactory).withFactory(new ObservationNodeFactory).build())
+  graph.newTask().fromIndexAll("types")
     .select(new TaskFunctionSelect {
-      override def select(node: Node) = node.get("name").equals("TEMP_CAMPUS")
+      override def select(node: Node) = node.get("name").equals("OPENING")
     })
     .`then`(new TaskAction {
       override def eval(context: TaskContext): Unit = {
-        println("Ive found " + context.getPreviousResult.asInstanceOf[Array[Node]].length + " results")
-        println(context.getPreviousResult.asInstanceOf[Array[Node]].headOption.get.get("type"))
+        context.getPreviousResult.asInstanceOf[Array[Node]](0).rel("sensors", new Callback[Array[Node]] {
+          override def on(result: Array[Node]): Unit = result.foreach(n => println(n.get("name")))
+        })
       }
 
     }).execute()
