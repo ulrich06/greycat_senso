@@ -47,7 +47,7 @@ public class SmartCampusNode extends AbstractNode {
 
     @Override
     public Object get(String propertyName) {
-        calls =+ 1;
+        calls = +1;
         System.out.println("GET " + propertyName);
         return super.get(propertyName);
     }

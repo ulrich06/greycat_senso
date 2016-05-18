@@ -47,6 +47,7 @@ class CollectorActor extends Actor with Collector {
 
 /**
   * Sensor data
+  *
   * @param n Name
   * @param v Value
   * @param t Timestamp
@@ -62,6 +63,7 @@ object SensorDataJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
 
 /**
   * Just a field
+  *
   * @param value Value
   * @tparam T Type
   */
@@ -77,11 +79,12 @@ class Return {
 /**
   * Collector
   */
-trait Collector extends HttpService with LazyLogging{
+trait Collector extends HttpService with LazyLogging {
   val collect = {
     import SensorDataJsonSupport._
     import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
-    path("collect") { // Receive a SmartCampus data
+    path("collect") {
+      // Receive a SmartCampus data
       post {
         entity(as[SensorData]) { sensordata =>
           logger.info(s"Received: $sensordata")
