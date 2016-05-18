@@ -48,6 +48,7 @@ object OrganizationalToGraph {
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         parent.add("sensor", sensorNode)
+        graph.index("nodes", sensorNode, "name", null)
       }
     })
 
@@ -95,10 +96,13 @@ object RunConverter extends App {
   val graph = OrganizationalToGraph(InfraSmartCampus.catalog, GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new ContainerNodeFactory).withFactory(new SensorNodeFactory).build())
   graph.newTask().fromIndexAll("nodes")
     .select(new TaskFunctionSelect {
-      override def select(node: Node) = node.get("name").equals("Office 449")
+      override def select(node: Node) = node.get("name").equals("TEMP_CAMPUS")
     })
     .then(new TaskAction {
-      override def eval(context: TaskContext): Unit = println("Ive found " + context.getPreviousResult.asInstanceOf[Array[Node]].length + " results")
+      override def eval(context: TaskContext): Unit = {
+        println("Ive found " + context.getPreviousResult.asInstanceOf[Array[Node]].length + " results")
+        println(context.getPreviousResult.asInstanceOf[Array[Node]].headOption.get.get("name"))
+      }
 
     }).execute()
 }
