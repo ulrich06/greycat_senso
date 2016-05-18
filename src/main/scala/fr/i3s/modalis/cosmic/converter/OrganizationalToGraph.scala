@@ -89,6 +89,7 @@ object OrganizationalToGraph extends LazyLogging{
 
 
   def apply(organizationalModel: Catalog, graph: Graph) = {
+    logger.info("Building the graph from " + organizationalModel.name)
     convertContainer(organizationalModel.root, None, organizationalModel, graph)
     graph
   }
