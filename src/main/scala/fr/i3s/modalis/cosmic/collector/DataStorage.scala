@@ -29,9 +29,9 @@ package fr.i3s.modalis.cosmic.collector
 import java.lang.Boolean
 
 import fr.i3s.modalis.cosmic.nodes.SmartCampusNode.SmartCampusFactory
+import org.mwg._
 import org.mwg.core.NoopScheduler
 import org.mwg.task._
-import org.mwg.{Callback, GraphBuilder, Node, Type}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 06/05/2016.
@@ -44,7 +44,7 @@ object DataStorage {
 
 
   // The graph
-  val graph = GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new SmartCampusFactory).build()
+  val graph = GraphBuilder.builder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withFactory(new SmartCampusFactory).build()
 
   /**
     * Initialize the data storage by creating a root node and indexes
@@ -66,6 +66,7 @@ object DataStorage {
 
   /**
     * Add a sensor to the data base
+    *
     * @param name Sensor name
     */
   def add(name: String) = {
@@ -82,7 +83,8 @@ object DataStorage {
 
   /**
     * Update a sensor value
-    * @param sensorData SensorData object
+    *
+    * @param sensorData   SensorData object
     * @param returnObject Return of the callback
     */
   def update(sensorData: SensorData, returnObject: Return) = {
@@ -107,8 +109,9 @@ object DataStorage {
 
   /**
     * Get sensor data
-    * @param name Sensor name
-    * @param date Date
+    *
+    * @param name         Sensor name
+    * @param date         Date
     * @param returnObject Return of the callback
     */
   def get(name: String, date: Long, returnObject: Return) = {

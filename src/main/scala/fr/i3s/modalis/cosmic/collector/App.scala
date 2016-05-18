@@ -2,11 +2,13 @@ package fr.i3s.modalis.cosmic.collector
 
 
 import java.io.{File, PrintWriter}
+import java.lang.Boolean
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
+import org.mwg.Callback
 import play.api.libs.json.{JsArray, Json}
 import spray.can.Http
 
@@ -30,6 +32,11 @@ object Launch extends App {
   DataStorage.add("AC_443")
   DataStorage.add("TEMP_CAMPUS")
 
+  Runtime.getRuntime().addShutdownHook(new Thread() {
+   override def run = DataStorage.graph.save(new Callback[Boolean] {
+      override def on(result: Boolean): Unit = {}
+    })
+  })
 
   IO(Http) ? Http.Bind(service, interface = "localhost", port = 11000)
 
@@ -55,6 +62,7 @@ object Simulator extends App {
     "curl -H \"Content-Type: application/json\" -X POST -d '{\"n\":\"" + s.n + "\", \"v\":\"" + s.v + "\", \"t\":\"" + s.t + "\"}' http://localhost:8080/collect"
 
   }
+
   writer.write(string)
   writer.close()
 
