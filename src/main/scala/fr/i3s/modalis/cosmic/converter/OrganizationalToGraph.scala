@@ -48,6 +48,7 @@ object OrganizationalToGraph extends LazyLogging{
         val sensorNode = graph.newTypedNode(0, 0, "SensorNode")
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
+        sensorNode.setProperty("type", Type.STRING, s.observes.name)
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
@@ -104,7 +105,7 @@ object RunConverter extends App {
     .`then`(new TaskAction {
       override def eval(context: TaskContext): Unit = {
         println("Ive found " + context.getPreviousResult.asInstanceOf[Array[Node]].length + " results")
-        println(context.getPreviousResult.asInstanceOf[Array[Node]].headOption.get.get("name"))
+        println(context.getPreviousResult.asInstanceOf[Array[Node]].headOption.get.get("type"))
       }
 
     }).execute()

@@ -2,7 +2,6 @@ package fr.i3s.modalis.cosmic.collector
 
 
 import java.io.{File, PrintWriter}
-import java.lang.Boolean
 
 import akka.actor.{ActorSystem, Props}
 import akka.io.IO
@@ -12,9 +11,8 @@ import fr.i3s.modalis.cosmic.TheLabExample
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
-import fr.i3s.modalis.cosmic.organizational.sample.InfraSmartCampus
+import org.mwg.GraphBuilder
 import org.mwg.core.NoopScheduler
-import org.mwg.{Callback, GraphBuilder}
 import play.api.libs.json.{JsArray, Json}
 import spray.can.Http
 
