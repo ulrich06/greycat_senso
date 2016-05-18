@@ -58,8 +58,8 @@ object DataStorage {
         root.setProperty("name", Type.STRING, "root")
 
         //create some index
-        graph.index("roots", root, Array("name"), null)
-        graph.index("nodes", root, Array("name"), null)
+        graph.index("roots", root, "name", null)
+        graph.index("nodes", root, "name", null)
       }
     })
   }
@@ -71,11 +71,11 @@ object DataStorage {
   def add(name: String) = {
     graph.connect(new Callback[Boolean] {
       override def on(result: Boolean): Unit = {
-        val node = graph.newNode(0, 0, "SmartCampusNode")
+        val node = graph.newTypedNode(0, 0, "SmartCampusNode")
         node.setProperty("name", Type.STRING, name)
         node.setProperty("value", Type.DOUBLE, Double.NaN)
 
-        graph.index("nodes", node, Array("name"), null)
+        graph.index("nodes", node, "name", null)
       }
     })
   }
