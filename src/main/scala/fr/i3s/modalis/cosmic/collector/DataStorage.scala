@@ -42,44 +42,16 @@ import org.mwg.task._
   */
 object DataStorage {
 
-
   // The graph
-  val graph = GraphBuilder.builder().withStorage(new LevelDBStorage("data")).withScheduler(new NoopScheduler()).withFactory(new SmartCampusFactory).build()
+  private var _graph: Graph = _
 
   /**
     * Initialize the data storage by creating a root node and indexes
     */
-  def init() = {
-    graph.connect(new Callback[Boolean] {
-      override def on(result: Boolean): Unit = {
-
-        //create graph nodes
-        val root = graph.newNode(0, 0)
-        root.setProperty("name", Type.STRING, "root")
-
-        //create some index
-        graph.index("roots", root, "name", null)
-        graph.index("nodes", root, "name", null)
-      }
-    })
+  def init(graph: Graph) = {
+    _graph = graph
   }
 
-  /**
-    * Add a sensor to the data base
-    *
-    * @param name Sensor name
-    */
-  def add(name: String) = {
-    graph.connect(new Callback[Boolean] {
-      override def on(result: Boolean): Unit = {
-        val node = graph.newTypedNode(0, 0, "SmartCampusNode")
-        node.setProperty("name", Type.STRING, name)
-        node.setProperty("value", Type.DOUBLE, Double.NaN)
-
-        graph.index("nodes", node, "name", null)
-      }
-    })
-  }
 
   /**
     * Update a sensor value
@@ -89,7 +61,7 @@ object DataStorage {
     */
   def update(sensorData: SensorData, returnObject: Return) = {
 
-    graph.newTask().fromIndexAll("nodes")
+    _graph.newTask().fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
@@ -115,7 +87,7 @@ object DataStorage {
     * @param returnObject Return of the callback
     */
   def get(name: String, date: Long, returnObject: Return) = {
-    graph.newTask().fromIndexAll("nodes")
+    _graph.newTask().fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })
@@ -131,5 +103,11 @@ object DataStorage {
         }
       }).execute()
   }
+
+  Runtime.getRuntime.addShutdownHook(new Thread() {
+    override def run = _graph.save(new Callback[Boolean] {
+      override def on(result: Boolean): Unit = { if (result) println("Graph saved") else println("An error occurred during the graph saving") }
+    })
+  })
 }
 

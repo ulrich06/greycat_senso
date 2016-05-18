@@ -8,7 +8,12 @@ import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import org.mwg.Callback
+import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
+import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
+import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
+import fr.i3s.modalis.cosmic.organizational.sample.InfraSmartCampus
+import org.mwg.core.NoopScheduler
+import org.mwg.{Callback, GraphBuilder}
 import play.api.libs.json.{JsArray, Json}
 import spray.can.Http
 
@@ -26,17 +31,13 @@ object Launch extends App {
   implicit val timeout = Timeout(5.seconds)
 
 
-  DataStorage.init()
-  DataStorage.add("TEMP_443")
-  DataStorage.add("LIGHT_443")
-  DataStorage.add("AC_443")
-  DataStorage.add("TEMP_CAMPUS")
-
-  Runtime.getRuntime().addShutdownHook(new Thread() {
-   override def run = DataStorage.graph.save(new Callback[Boolean] {
-      override def on(result: Boolean): Unit = {}
-    })
-  })
+  DataStorage.init(OrganizationalToGraph(InfraSmartCampus.catalog,
+    GraphBuilder.
+      builder().
+      withScheduler(new NoopScheduler()).
+      withFactory(new ContainerNodeFactory).
+      withFactory(new SensorNodeFactory)
+      .build()))
 
   IO(Http) ? Http.Bind(service, interface = "localhost", port = 11000)
 
