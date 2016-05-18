@@ -72,10 +72,10 @@ object OrganizationalToGraph extends LazyLogging{
         // Adding the node to the graph indexes
         graph.index("nodes", containerNode, "name", null)
 
-        container.getSensors.foreach(s => convertSensor(s, containerNode, graph))
 
-        // Loop on children containers if we are at parent level
+        // Loop on children containers and sensors if we are at parent level
         if (parent.isEmpty) {
+          container.getSensors.foreach(s => convertSensor(s, containerNode, graph))
           container.getContainersName.filterNot(_ equals container.name).foreach(cName => {
             convertContainer(catalog.getContainer(cName).get, Some(containerNode), catalog, graph)
           })
