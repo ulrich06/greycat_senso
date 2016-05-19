@@ -28,9 +28,7 @@ package fr.i3s.modalis.cosmic.collector
 
 import java.lang.Boolean
 
-import fr.i3s.modalis.cosmic.nodes.SmartCampusNode.SmartCampusFactory
 import org.mwg._
-import org.mwg.core.NoopScheduler
 import org.mwg.task._
 
 /**
@@ -87,7 +85,7 @@ object DataStorage {
     * @param returnObject Return of the callback
     */
   def get(name: String, date: Long, returnObject: Return) = {
-    _graph.newTask().fromIndexAll("nodes")
+    _graph.newTask().time(date).fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })

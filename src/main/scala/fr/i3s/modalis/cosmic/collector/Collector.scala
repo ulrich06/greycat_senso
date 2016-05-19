@@ -79,7 +79,7 @@ class Return {
 /**
   * Collector
   */
-trait Collector extends HttpService with LazyLogging {
+trait Collector extends HttpService with LazyLogging{
   val collect = {
     import SensorDataJsonSupport._
     import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
@@ -87,21 +87,22 @@ trait Collector extends HttpService with LazyLogging {
       // Receive a SmartCampus data
       post {
         entity(as[SensorData]) { sensordata =>
-          logger.info(s"Received: $sensordata")
+          logger.info(s"[POST] $sensordata")
           val returnObject = new Return
           DataStorage.update(sensordata, returnObject)
           complete(returnObject.value.value.n + " " + returnObject.value.value.v)
         }
       }
     } ~
-      (path("sensors") & get) {
-        parameters('name.as[String], 'date.as[Long] ? (System.currentTimeMillis() / 1000)) { (name, date) =>
-          val returnObject = new Return
-          DataStorage.get(name.replaceAll("\"", ""), date, returnObject)
-          complete(returnObject.value.value.toJson.toString())
+      path("sensors") {
+        get {
+          parameters('name.as[String], 'date.as[Long]?) { (name, date) =>
+            logger.info(s"[GET] Name: $name Date: $date")
+            val returnObject = new Return
+            DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
+            complete(returnObject.value.value.toJson.toString())
+          }
         }
-
-
       }
   }
 }
