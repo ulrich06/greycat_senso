@@ -28,6 +28,7 @@ package fr.i3s.modalis.cosmic.collector
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
+import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.HttpService
@@ -37,7 +38,7 @@ import spray.routing.RejectionHandler.Default
   * Actor representing a SmartCampus collector
   */
 
-class CollectorActor extends Actor with Collector {
+class MWDBCollectorActor extends Actor with MWDBCollector {
   implicit val system = context.system
 
   override def receive: Receive = runRoute(collect)
@@ -79,7 +80,7 @@ class Return {
 /**
   * Collector
   */
-trait Collector extends HttpService with LazyLogging{
+trait MWDBCollector extends HttpService with LazyLogging{
   val collect = {
     import SensorDataJsonSupport._
     import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller

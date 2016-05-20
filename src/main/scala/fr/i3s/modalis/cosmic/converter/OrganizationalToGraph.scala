@@ -29,14 +29,9 @@ package fr.i3s.modalis.cosmic.converter
 import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
-import fr.i3s.modalis.cosmic.nodes.ObservationNode.ObservationNodeFactory
-import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
-import fr.i3s.modalis.cosmic.organizational.sample.InfraSmartCampus
 import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
 import org.mwg._
-import org.mwg.core.NoopScheduler
-import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
+import org.mwg.task.{TaskAction, TaskContext}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 18/05/2016.
@@ -122,19 +117,4 @@ object OrganizationalToGraph extends LazyLogging{
   }
 }
 
-object RunConverter extends App {
-  val graph = OrganizationalToGraph(InfraSmartCampus.catalog, GraphBuilder.builder().withScheduler(new NoopScheduler()).withFactory(new ContainerNodeFactory).withFactory(new SensorNodeFactory).withFactory(new ObservationNodeFactory).build())
-  graph.newTask().fromIndexAll("types")
-    .select(new TaskFunctionSelect {
-      override def select(node: Node) = node.get("name").equals("OPENING")
-    })
-    .`then`(new TaskAction {
-      override def eval(context: TaskContext): Unit = {
-        context.getPreviousResult.asInstanceOf[Array[Node]](0).rel("sensors", new Callback[Array[Node]] {
-          override def on(result: Array[Node]): Unit = result.foreach(n => println(n.get("name")))
-        })
-      }
-
-    }).execute()
-}
 

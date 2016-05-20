@@ -1,5 +1,30 @@
-package fr.i3s.modalis.cosmic.collector
+/*
+ * ************************************************************************
+ *                  Université de Nice Sophia-Antipolis (UNS) -
+ *                  Centre National de la Recherche Scientifique (CNRS)
+ *                  Copyright © 2016 UNS, CNRS
+ *
+ *   This library is free software; you can redistribute it and/or
+ *   modify it under the terms of the GNU Lesser General Public
+ *   License as published by the Free Software Foundation; either
+ *   version 3 of the License, or (at your option) any later version.
+ *
+ *   This library is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ *   Lesser General Public License for more details.
+ *
+ *   You should have received a copy of the GNU Lesser General Public
+ *   License along with this library; if not, write to the Free Software
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ *
+ *
+ *     Author: Cyril Cecchinel – Laboratoire I3S – cecchine@i3s.unice.fr
+ * ***********************************************************************
+ */
 
+package fr.i3s.modalis.cosmic
 
 import java.io.{File, PrintWriter}
 
@@ -7,11 +32,12 @@ import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
-import fr.i3s.modalis.cosmic.TheLabExample
+import fr.i3s.modalis.cosmic.collector.{MWDBCollectorActor, SensorData}
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
-import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
-import fr.i3s.modalis.cosmic.nodes.ObservationNode.ObservationNodeFactory
-import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.DataStorage
+import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
 import org.mwg.GraphBuilder
 import org.mwg.core.NoopScheduler
 import play.api.libs.json.{JsArray, Json}
@@ -27,7 +53,7 @@ import scala.concurrent.duration._
 object Launch extends App {
   implicit val system = ActorSystem("on-spray-can")
 
-  val service = system.actorOf(Props[CollectorActor], "collector-service")
+  val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
   implicit val timeout = Timeout(5.seconds)
 
 

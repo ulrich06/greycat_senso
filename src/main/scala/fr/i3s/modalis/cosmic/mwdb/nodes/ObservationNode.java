@@ -24,7 +24,7 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic.nodes;
+package fr.i3s.modalis.cosmic.mwdb.nodes;
 
 import org.mwg.Graph;
 import org.mwg.Node;

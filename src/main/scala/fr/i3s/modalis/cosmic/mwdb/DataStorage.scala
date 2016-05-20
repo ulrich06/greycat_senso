@@ -24,10 +24,11 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic.collector
+package fr.i3s.modalis.cosmic.mwdb
 
 import java.lang.Boolean
 
+import fr.i3s.modalis.cosmic.collector.{Return, SensorData}
 import org.mwg._
 import org.mwg.task._
 

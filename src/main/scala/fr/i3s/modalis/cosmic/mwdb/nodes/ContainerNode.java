@@ -24,10 +24,8 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic.nodes;
+package fr.i3s.modalis.cosmic.mwdb.nodes;
 
-import com.typesafe.scalalogging.LazyLogging;
-import com.typesafe.scalalogging.Logger;
 import org.mwg.Graph;
 import org.mwg.Node;
 import org.mwg.plugin.AbstractNode;
@@ -37,13 +35,13 @@ import org.mwg.plugin.NodeFactory;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class SensorNode extends AbstractNode{
+public class ContainerNode extends AbstractNode {
 
-    private static final String NAME = "SensorNode";
+    private static final String NAME = "ContainerNode";
 
     private int calls = 0;
 
-    private SensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
+    private ContainerNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
 
@@ -58,8 +56,7 @@ public class SensorNode extends AbstractNode{
     }
 
 
-
-    public static class SensorNodeFactory implements NodeFactory {
+    public static class ContainerNodeFactory implements NodeFactory {
         @Override
         public String name() {
             return NAME;
@@ -67,7 +64,7 @@ public class SensorNode extends AbstractNode{
 
         @Override
         public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-            return new SensorNode(world, time, id, graph, initialResolution);
+            return new ContainerNode(world, time, id, graph, initialResolution);
         }
     }
 }
