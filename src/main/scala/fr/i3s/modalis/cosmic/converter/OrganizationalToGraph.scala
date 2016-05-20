@@ -49,11 +49,12 @@ object OrganizationalToGraph extends LazyLogging{
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
+        graph.index("sensors", sensorNode, "name", null)
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
 
         graph.newTask()
           .fromIndex("types", s"name=${s.observes.name}")
-          .then(new TaskAction {
+          .`then`(new TaskAction {
             override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]](0).add("sensors", sensorNode)
           })
           .execute()
@@ -65,6 +66,7 @@ object OrganizationalToGraph extends LazyLogging{
   def convertContainer(container: Container, parent:Option[Node], catalog: Catalog, graph: Graph): Unit = {
     graph.connect(new Callback[Boolean] {
       override def on(result: Boolean): Unit = {
+        logger.debug(s"Creating container ${container.name}")
         val containerNode = graph.newTypedNode(0, 0, "ContainerNode")
         containerNode.setProperty("name", Type.STRING, container.name)
 
@@ -73,19 +75,29 @@ object OrganizationalToGraph extends LazyLogging{
         else // It is the root node
           graph.index("root", containerNode, "name", null)
 
-        logger.debug(s"Created container node ${containerNode.get("name")}")
+        logger.debug(s"Created container node ${containerNode.get("name")} (parent: ${if (parent.isDefined) parent.get.get("name")})")
 
         // Adding the node to the graph indexes
         graph.index("nodes", containerNode, "name", null)
+        graph.index("containers", containerNode, "name", null)
 
 
-        // Loop on children containers and sensors if we are at parent level
-        if (parent.isEmpty) {
-          container.getSensors.foreach(s => convertSensor(s, containerNode, graph))
-          container.getContainersName.filterNot(_ equals container.name).foreach(cName => {
-            convertContainer(catalog.getContainer(cName).get, Some(containerNode), catalog, graph)
-          })
-        }
+        container.getSensors.foreach(s => {
+          convertSensor(s, containerNode, graph)
+          var sensorNode:Node = null
+          graph.newTask().fromIndex("sensors", s"name=${s.name}").`then`(new TaskAction {
+            override def eval(context: TaskContext): Unit = {
+              sensorNode = context.getPreviousResult.asInstanceOf[Array[Node]](0)
+            }
+          }).execute()
+          containerNode.add("sensors", sensorNode)
+        })
+        val listOfInnerContainers = container.getContainersName.filterNot(_ equals container.name)
+        val listOfInnerContainersFirstLevel = listOfInnerContainers.intersect(container.contains.collect({case y => y}).map{_.name})
+        listOfInnerContainersFirstLevel.foreach(cName => {
+          convertContainer(catalog.getContainer(cName).get, Some(containerNode), catalog, graph)
+        })
+
 
 
       }
