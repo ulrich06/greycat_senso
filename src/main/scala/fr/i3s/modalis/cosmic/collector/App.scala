@@ -10,6 +10,7 @@ import akka.util.Timeout
 import fr.i3s.modalis.cosmic.TheLabExample
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.nodes.ContainerNode.ContainerNodeFactory
+import fr.i3s.modalis.cosmic.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.nodes.SensorNode.SensorNodeFactory
 import org.mwg.GraphBuilder
 import org.mwg.core.NoopScheduler
@@ -35,8 +36,9 @@ object Launch extends App {
       builder().
       withScheduler(new NoopScheduler()).
       withFactory(new ContainerNodeFactory).
-      withFactory(new SensorNodeFactory)
-      .build()))
+      withFactory(new SensorNodeFactory).
+      withFactory(new ObservationNodeFactory).
+      build()))
 
   IO(Http) ? Http.Bind(service, interface = "localhost", port = 11000)
 
