@@ -32,6 +32,7 @@ import akka.actor.{ActorSystem, Props}
 import akka.io.IO
 import akka.pattern.ask
 import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 import fr.i3s.modalis.cosmic.collector.{MWDBCollectorActor, SensorData}
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
@@ -51,6 +52,8 @@ import scala.concurrent.duration._
   * @author ${user.name}
   */
 object Launch extends App {
+  val conf = ConfigFactory.load()
+  val serverPort = conf.getInt("port")
   implicit val system = ActorSystem("on-spray-can")
 
   val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
@@ -66,7 +69,7 @@ object Launch extends App {
       withFactory(new ObservationNodeFactory).
       build()))
 
-  IO(Http) ? Http.Bind(service, interface = "localhost", port = 11000)
+  IO(Http) ? Http.Bind(service, interface = "localhost", port = serverPort)
 
 
 }
