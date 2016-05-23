@@ -28,51 +28,10 @@ package fr.i3s.modalis.cosmic
 
 import java.io.{File, PrintWriter}
 
-import akka.actor.{ActorSystem, Props}
-import akka.io.IO
-import akka.pattern.ask
-import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
-import fr.i3s.modalis.cosmic.collector.{MWDBCollectorActor, SensorData}
-import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
-import fr.i3s.modalis.cosmic.mwdb.DataStorage
-import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
-import org.mwg.GraphBuilder
-import org.mwg.core.NoopScheduler
+import fr.i3s.modalis.cosmic.collector.SensorData
 import play.api.libs.json.{JsArray, Json}
-import spray.can.Http
-
-import scala.concurrent.duration._
-
-/**
-  * Init the DB and the HTTP service
-  *
-  * @author ${user.name}
-  */
-object Launch extends App {
-  val conf = ConfigFactory.load()
-  val serverPort = conf.getInt("port")
-  implicit val system = ActorSystem("on-spray-can")
-
-  val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
-  implicit val timeout = Timeout(5.seconds)
 
 
-  DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
-    GraphBuilder.
-      builder().
-      withScheduler(new NoopScheduler()).
-      withFactory(new ContainerNodeFactory).
-      withFactory(new SensorNodeFactory).
-      withFactory(new ObservationNodeFactory).
-      build()))
-
-  IO(Http) ? Http.Bind(service, interface = "localhost", port = serverPort)
-
-
-}
 
 /**
   * Just a small simulator that takes in into a SmartCampus measures file and generates
