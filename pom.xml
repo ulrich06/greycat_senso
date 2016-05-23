@@ -118,32 +118,6 @@
         <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
             <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>0.15.1</version>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>smartcampuscollector</name>
-                            <alias></alias>
-                            <build>
-                                <assembly>
-                                    <mode>dir</mode>
-                                    <basedir>${basedir}/target</basedir>
-                                    <dockerFileDir>${basedir}/target</dockerFileDir>
-                                </assembly>
-                            </build>
-                            <run>
-                                <ports>
-                                    <port>11000:11100</port>
-                                </ports>
-
-                            </run>
-                        </image>
-                    </images>
-                </configuration>
-            </plugin>
-            <plugin>
                 <!-- see http://davidb.github.com/scala-maven-plugin -->
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
