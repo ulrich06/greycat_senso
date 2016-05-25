@@ -37,36 +37,36 @@ import play.api.libs.json.{JsObject, Json}
   */
 object RealTimeSmartCampusImporter {
 
-    def PATTERN_SENSOR(s:String) = s"http://smartcampus.unice.fr/sensors/$s/data/last"
-    val TARGET = "http://localhost:11000/collect"
-    val SLEEP = 1000
+  def PATTERN_SENSOR(s:String) = s"http://smartcampus.unice.fr/sensors/$s/data/last"
+  val TARGET = "http://localhost:11000/collect"
+  val SLEEP = 1000
 
-    def apply(lstSensors:List[String]) = {
-      for (sensor <- lstSensors){
-       new Thread(new Runnable {
-          override def run(): Unit = {
-            while(true) {
-              val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor)).mkString)
-              //val date = ((source \\ "values").head \ "date").as[String]
-              val name = (source \ "id").as[String]
-              val date = ((source  \ "values").head \ "date").as[String]
-              val value = ((source  \ "values").head \ "value").as[String]
+  def apply(lstSensors:List[String]) = {
+    for (sensor <- lstSensors){
+      new Thread(new Runnable {
+        override def run(): Unit = {
+          while(true) {
+            val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor)).mkString)
+            //val date = ((source \\ "values").head \ "date").as[String]
+            val name = (source \ "id").as[String]
+            val date = ((source  \ "values").head \ "date").as[String]
+            val value = ((source  \ "values").head \ "value").as[String]
 
-              val post = new HttpPost(TARGET)
-              post.setHeader("Content-type", "application/json")
-              post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
-              val client = HttpClientBuilder.create().build()
-              client.execute(post)
-              Thread.sleep(SLEEP)
-            }
-
+            val post = new HttpPost(TARGET)
+            post.setHeader("Content-type", "application/json")
+            post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
+            val client = HttpClientBuilder.create().build()
+            client.execute(post)
+            Thread.sleep(SLEEP)
           }
-        }).start()
-      }
+
+        }
+      }).start()
     }
+  }
 }
 
-object HistorySmartCampusImporter {
+object HistorySmartCampusImporterFromURL {
 
   val TARGET = "http://localhost:11000/collect"
   def PATTERN_SENSOR(s:String, tBegin:String, tEnd:String) = s"http://smartcampus.unice.fr/sensors/$s/data?date=$tBegin/$tEnd"
@@ -76,7 +76,7 @@ object HistorySmartCampusImporter {
     for (sensor <- lstSensors) {
       new Thread(new Runnable {
         override def run(): Unit = {
-           val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor, tBegin.replace(" ", "%20"), tEnd.replace(" ", "%20"))).mkString)
+          val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor, tBegin.replace(" ", "%20"), tEnd.replace(" ", "%20"))).mkString)
           val name = (source \ "id").as[String]
           for (record <- (source \ "values").as[List[JsObject]]) {
             val date = (record \ "date").as[String]
@@ -89,6 +89,27 @@ object HistorySmartCampusImporter {
           }
         }
       }).start()
+    }
+  }
+}
+
+object HistorySmartCampusImporterFromFile {
+
+  val TARGET = "http://localhost:11000/collect"
+  val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
+
+  def apply(pathToFile:String) = {
+
+    val source = Json.parse(scala.io.Source.fromFile(pathToFile).mkString)
+    val name = (source \ "id").as[String]
+    for (record <- (source \ "values").as[List[JsObject]]) {
+      val date = (record \ "date").as[String]
+      val value = (record \ "value").as[String]
+      val post = new HttpPost(TARGET)
+      post.setHeader("Content-type", "application/json")
+      post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
+      val client = HttpClientBuilder.create().build()
+      client.execute(post)
     }
   }
 }
