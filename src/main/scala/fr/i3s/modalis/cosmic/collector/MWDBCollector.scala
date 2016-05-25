@@ -104,6 +104,13 @@ trait MWDBCollector extends HttpService with LazyLogging{
             complete(returnObject.value.value.toJson.toString())
           }
         }
+      } ~
+    path("calls") {
+      parameter('name.as[String]) { (name) =>
+        logger.info(s"[GET] Name: $name")
+        DataStorage.getAmountCalls(name.replaceAll("\"", ""))
+        complete("")
       }
+    }
   }
 }

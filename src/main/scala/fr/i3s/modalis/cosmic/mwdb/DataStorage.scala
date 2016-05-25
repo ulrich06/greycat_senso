@@ -29,6 +29,7 @@ package fr.i3s.modalis.cosmic.mwdb
 import java.lang.Boolean
 
 import fr.i3s.modalis.cosmic.collector.{Return, SensorData}
+import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import org.mwg._
 import org.mwg.task._
 
@@ -40,6 +41,8 @@ import org.mwg.task._
   * Sensor data storage
   */
 object DataStorage {
+
+
 
   // The graph
   private var _graph: Graph = _
@@ -101,6 +104,15 @@ object DataStorage {
           case None => ()
         }
       }).execute()
+  }
+
+  def getAmountCalls(s: String) = {
+    _graph.newTask().time(System.currentTimeMillis()/1000).fromIndex("nodes", s"name=$s").then(new TaskAction {
+      override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => println(node.asInstanceOf[SensorNode].getNbCalls.length)
+        case None => ()
+      }
+    }).execute()
   }
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
