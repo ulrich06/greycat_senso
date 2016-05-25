@@ -37,8 +37,9 @@ import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
-import org.mwg.GraphBuilder
 import org.mwg.core.NoopScheduler
+import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
+import org.mwg.{GraphBuilder, LevelDBStorage}
 import spray.can.Http
 
 import scala.concurrent.duration._
@@ -63,6 +64,8 @@ object Launch extends App {
       withFactory(new ContainerNodeFactory).
       withFactory(new SensorNodeFactory).
       withFactory(new ObservationNodeFactory).
+      withFactory(new GaussianSlotProfilingNode.Factory()).
+      withStorage(new LevelDBStorage("smartcampus")).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "localhost", port = serverPort)

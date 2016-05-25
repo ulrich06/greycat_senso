@@ -34,6 +34,12 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>ml</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>eu.ace-design.deposit</groupId>
             <artifactId>organizational</artifactId>
             <version>1.0-SNAPSHOT</version>
