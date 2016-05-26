@@ -99,7 +99,9 @@ public class SensorNode extends AbstractNode{
                     System.out.println();
                 }
             });
+
         }
+        super.setProperty(propertyName, propertyType, propertyValue);
     }
 
     public double[] getNbCalls() {
