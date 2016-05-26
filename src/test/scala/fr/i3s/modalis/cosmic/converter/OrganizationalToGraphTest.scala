@@ -32,7 +32,7 @@ import fr.i3s.modalis.cosmic.TheLabExample
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
-import org.mwg.core.NoopScheduler
+import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
 import org.mwg.{Callback, GraphBuilder, LevelDBStorage, Node}
 import org.specs2.mutable.SpecificationWithJUnit

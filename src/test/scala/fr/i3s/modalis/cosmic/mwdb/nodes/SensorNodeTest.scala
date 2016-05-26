@@ -29,7 +29,7 @@ package fr.i3s.modalis.cosmic.mwdb.nodes
 import java.lang.Boolean
 
 import org.mwg._
-import org.mwg.core.NoopScheduler
+import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
 import org.mwg.task.{TaskAction, TaskContext}
 import org.specs2.mutable.SpecificationWithJUnit
