@@ -21,5 +21,4 @@ RUN ["mvn", "assembly:single"]
 
 EXPOSE 11000
 
-CMD ["pwd"]
 CMD ["/usr/lib/jvm/java-8-openjdk-amd64/bin/java", "-jar", "target/SmartCampusMWDB-1.0-SNAPSHOT-jar-with-dependencies.jar"]

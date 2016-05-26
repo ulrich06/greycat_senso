@@ -61,8 +61,10 @@ public class SensorNode extends AbstractNode{
             rel("profileUsage", new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
-                    GaussianSlotProfilingNode profiler = ((GaussianSlotProfilingNode) result[0]);
+                    System.out.println("Learning GET at " + state.time());
+                    GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
                     profiler.learnArray(new double[]{1.0});
+                    System.out.println(profiler.getSum().length);
                     for (double v : profiler.getSum()) {
                         System.out.println(v + "");
                     }
@@ -72,6 +74,32 @@ public class SensorNode extends AbstractNode{
 
         }
         return super.get(propertyName);
+    }
+
+    @Override
+    public void setProperty(String propertyName, byte propertyType, Object propertyValue){
+    final NodeState state = _resolver.resolveState(this, true);
+        if ("value".equals(propertyName) && state.time() > 0L) {
+            if (state.getFromKey("profileValue") == null){
+                // create if not exist
+                Node profileValue = graph().newTypedNode(0, 0, GaussianSlotProfilingNode.NAME);
+                profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
+                add("profileValue", profileValue);
+            }
+            rel("profileValue", new Callback<Node[]>() {
+                @Override
+                public void on(Node[] result) {
+                    System.out.println("Learning SET at " + state.time());
+                    GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
+                    profiler.learnArray(new double[]{1.0});
+                    System.out.println(profiler.getSum().length);
+                    for (double v : profiler.getSum()) {
+                        System.out.println(v + "");
+                    }
+                    System.out.println();
+                }
+            });
+        }
     }
 
     public double[] getNbCalls() {
