@@ -41,12 +41,12 @@ object RealTimeSmartCampusImporter {
   val TARGET = "http://localhost:11000/collect"
   val SLEEP = 1000
 
-  def apply(lstSensors:List[String]) = {
+  def apply(lstSensors:List[(String, Int)]) = {
     for (sensor <- lstSensors){
       new Thread(new Runnable {
         override def run(): Unit = {
           while(true) {
-            val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor)).mkString)
+            val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor._1)).mkString)
             //val date = ((source \\ "values").head \ "date").as[String]
             val name = (source \ "id").as[String]
             val date = ((source  \ "values").head \ "date").as[String]
@@ -57,7 +57,7 @@ object RealTimeSmartCampusImporter {
             post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
             val client = HttpClientBuilder.create().build()
             client.execute(post)
-            Thread.sleep(SLEEP)
+            Thread.sleep(sensor._2 * 1000)
           }
 
         }
