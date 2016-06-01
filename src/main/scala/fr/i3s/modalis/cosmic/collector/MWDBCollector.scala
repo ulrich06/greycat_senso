@@ -29,6 +29,7 @@ package fr.i3s.modalis.cosmic.collector
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
+import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.HttpService
@@ -62,20 +63,9 @@ object SensorDataJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val format = jsonFormat3(SensorData)
 }
 
-/**
-  * Just a field
-  *
-  * @param value Value
-  * @tparam T Type
-  */
-class Field[T](var value: T)
 
-/**
-  * Handle the return of callbacks
-  */
-class Return {
-  val value = new Field(SensorData("", "", ""))
-}
+
+
 
 /**
   * Collector
@@ -89,7 +79,7 @@ trait MWDBCollector extends HttpService with LazyLogging{
       post {
         entity(as[SensorData]) { sensordata =>
           logger.info(s"[POST] $sensordata")
-          val returnObject = new Return
+          val returnObject = new SensorDataReturn
           DataStorage.update(sensordata, returnObject)
           complete(returnObject.value.value.n + " " + returnObject.value.value.v)
         }
@@ -99,7 +89,7 @@ trait MWDBCollector extends HttpService with LazyLogging{
         get {
           parameters('name.as[String], 'date.as[Long]?) { (name, date) =>
             logger.info(s"[GET] Name: $name Date: $date")
-            val returnObject = new Return
+            val returnObject = new SensorDataReturn
             DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
             complete(returnObject.value.value.toJson.toString())
           }

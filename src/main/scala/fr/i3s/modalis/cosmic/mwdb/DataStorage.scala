@@ -28,8 +28,9 @@ package fr.i3s.modalis.cosmic.mwdb
 
 import java.lang.Boolean
 
-import fr.i3s.modalis.cosmic.collector.{Return, SensorData}
+import fr.i3s.modalis.cosmic.collector.SensorData
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
+import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
 import org.mwg._
 import org.mwg.task._
 
@@ -61,7 +62,7 @@ object DataStorage {
     * @param sensorData   SensorData object
     * @param returnObject Return of the callback
     */
-  def update(sensorData: SensorData, returnObject: Return) = {
+  def update(sensorData: SensorData, returnObject: SensorDataReturn) = {
 
     _graph.newTask().fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
@@ -88,7 +89,7 @@ object DataStorage {
     * @param date         Date
     * @param returnObject Return of the callback
     */
-  def get(name: String, date: Long, returnObject: Return) = {
+  def get(name: String, date: Long, returnObject: SensorDataReturn) = {
     _graph.newTask().time(date).fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
@@ -107,7 +108,7 @@ object DataStorage {
   }
 
   def getAmountCalls(s: String) = {
-    _graph.newTask().time(System.currentTimeMillis()/1000).fromIndex("nodes", s"name=$s").then(new Action {
+    _graph.newTask().fromIndex("nodes", s"name=$s").then(new Action {
       override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
         case Some(node) => println(node.asInstanceOf[SensorNode].getNbCalls.length)
         case None => ()

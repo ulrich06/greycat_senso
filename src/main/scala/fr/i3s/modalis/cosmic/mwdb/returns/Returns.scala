@@ -24,37 +24,25 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic
-
-import java.io.{File, PrintWriter}
+package fr.i3s.modalis.cosmic.mwdb.returns
 
 import fr.i3s.modalis.cosmic.collector.SensorData
-import play.api.libs.json.{JsArray, Json}
-
-
+import play.api.libs.json.{JsObject, JsValue}
 
 /**
-  * Just a small simulator that takes in into a SmartCampus measures file and generates
-  * curl instructions to feed this application
+  * Handle the return of callbacks
   */
-object Simulator extends App {
+trait Return {
+  val value:Field[_]
+}
 
-  val file = scala.io.Source.fromFile("assets/TEMP_CAMPUS").mkString
-  val json = Json.parse(file)
-  val urlName = "http://localhost:8080/collect"
-  val name = (json \ "id").get.as[String]
-  val array = (json \ "values").as[JsArray]
-  val data = array.value.par.map { v => SensorData(name, (v \ "value").as[String], (v \ "date").as[String]) }.seq
-  val string = data.map(convert).mkString("\n")
-  val writer = new PrintWriter(new File("generated/output.sh"))
+class SensorDataReturn extends Return{
+  val value = new Field(SensorData("", "", ""))
+}
 
-  def convert(s: SensorData): String = {
-    "curl -H \"Content-Type: application/json\" -X POST -d '{\"n\":\"" + s.n + "\", \"v\":\"" + s.v + "\", \"t\":\"" + s.t + "\"}' http://localhost:8080/collect"
-
-  }
-
-  writer.write(string)
-  writer.close()
-
-
+class JSONReturn extends Return{
+  val value = new Field(new JsObject(Map[String,JsValue]()))
+}
+class DoubleArrayReturn extends Return{
+  val value = new Field({0.0}.asInstanceOf[Array[Double]])
 }
