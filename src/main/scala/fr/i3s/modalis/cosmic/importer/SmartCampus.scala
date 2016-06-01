@@ -32,10 +32,14 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.HttpClientBuilder
 import play.api.libs.json.{JsObject, Json}
 
+import scala.collection.mutable
+
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 24/05/2016.
   */
 object RealTimeSmartCampusImporter {
+
+  val history:scala.collection.mutable.Map[String, String] = mutable.Map[String, String]()
 
   def PATTERN_SENSOR(s:String) = s"http://smartcampus.unice.fr/sensors/$s/data/last"
   val TARGET = "http://localhost:11000/collect"
@@ -43,6 +47,8 @@ object RealTimeSmartCampusImporter {
 
   def apply(lstSensors:List[(String, Int)]) = {
     for (sensor <- lstSensors){
+      history += ((sensor._1, "0"))
+
       new Thread(new Runnable {
         override def run(): Unit = {
           while(true) {
@@ -51,12 +57,14 @@ object RealTimeSmartCampusImporter {
             val name = (source \ "id").as[String]
             val date = ((source  \ "values").head \ "date").as[String]
             val value = ((source  \ "values").head \ "value").as[String]
-
-            val post = new HttpPost(TARGET)
-            post.setHeader("Content-type", "application/json")
-            post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
-            val client = HttpClientBuilder.create().build()
-            client.execute(post)
+            if (history(name) != date){
+              val post = new HttpPost(TARGET)
+              post.setHeader("Content-type", "application/json")
+              post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
+              val client = HttpClientBuilder.create().build()
+              client.execute(post)
+              history(name) = date
+            }
             Thread.sleep(sensor._2 * 1000)
           }
 
