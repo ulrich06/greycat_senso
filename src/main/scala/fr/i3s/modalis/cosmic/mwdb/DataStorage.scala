@@ -67,7 +67,7 @@ object DataStorage {
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
-      .`then`(new TaskAction {
+        .`then`(new Action {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
@@ -93,7 +93,7 @@ object DataStorage {
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })
-      .`then`(new TaskAction {
+      .`then`(new Action {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
@@ -107,7 +107,7 @@ object DataStorage {
   }
 
   def getAmountCalls(s: String) = {
-    _graph.newTask().time(System.currentTimeMillis()/1000).fromIndex("nodes", s"name=$s").then(new TaskAction {
+    _graph.newTask().time(System.currentTimeMillis()/1000).fromIndex("nodes", s"name=$s").then(new Action {
       override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
         case Some(node) => println(node.asInstanceOf[SensorNode].getNbCalls.length)
         case None => ()

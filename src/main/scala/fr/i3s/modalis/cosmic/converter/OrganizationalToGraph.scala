@@ -31,7 +31,7 @@ import java.lang.Boolean
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
 import org.mwg._
-import org.mwg.task.{TaskAction, TaskContext}
+import org.mwg.task.{Action, TaskContext}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 18/05/2016.
@@ -54,7 +54,7 @@ object OrganizationalToGraph extends LazyLogging{
 
         graph.newTask()
           .fromIndex("types", s"name=${s.observes.name}")
-          .`then`(new TaskAction {
+          .`then`(new Action {
             override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]](0).add("sensors", sensorNode)
           })
           .execute()
@@ -85,7 +85,7 @@ object OrganizationalToGraph extends LazyLogging{
         container.getSensors.foreach(s => {
           convertSensor(s, containerNode, graph)
           var sensorNode:Node = null
-          graph.newTask().fromIndex("sensors", s"name=${s.name}").`then`(new TaskAction {
+          graph.newTask().fromIndex("sensors", s"name=${s.name}").`then`(new Action {
             override def eval(context: TaskContext): Unit = {
               sensorNode = context.getPreviousResult.asInstanceOf[Array[Node]](0)
             }
