@@ -65,7 +65,7 @@ object RealTimeSmartCampusImporter {
               client.execute(post)
               history(name) = date
             }
-            Thread.sleep(sensor._2 * 1000)
+            if (sensor._2 == 0) Thread.sleep(1000) else Thread.sleep(sensor._2 * 1000)
           }
 
         }
