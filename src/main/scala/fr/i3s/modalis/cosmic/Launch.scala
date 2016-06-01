@@ -33,6 +33,7 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import fr.i3s.modalis.cosmic.collector.MWDBCollectorActor
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
+import fr.i3s.modalis.cosmic.importer.RealTimeSmartCampusImporter
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
@@ -65,10 +66,11 @@ object Launch extends App {
       withFactory(new SensorNodeFactory).
       withFactory(new ObservationNodeFactory).
       withFactory(new GaussianSlotProfilingNode.Factory()).
-      withStorage(new LevelDBStorage("smartcampus")).
+      withStorage(new LevelDBStorage("smartcampus").useNative(false)).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "localhost", port = serverPort)
 
+  RealTimeSmartCampusImporter(List(("TEMP_443V", 5), ("TEMP_CAMPUS", 2), ("TEMP_CAFEV", 1), ("DOOR_443", 0), ("NOISE_SPARKS_CORRIDOR", 2)))
 
 }
