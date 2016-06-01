@@ -42,6 +42,9 @@ public class SensorNode extends AbstractNode{
     final static int SLOTS = 12;
     private static final String NAME = "SensorNode";
 
+    public static final String USAGE_NAME = "profileUsage";
+    public static final String VALUE_NAME = "profileValue";
+
     private int calls = 0;
 
     private SensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
@@ -52,13 +55,13 @@ public class SensorNode extends AbstractNode{
     public Object get(String propertyName) {
         final NodeState state = _resolver.resolveState(this, true);
         if ("value".equals(propertyName) && state.time() > 0L){
-            if (state.getFromKey("profileUsage") == null){
+            if (state.getFromKey(USAGE_NAME) == null){
                 // create if not exist
                 Node profileUsage = graph().newTypedNode(0, 0, GaussianSlotProfilingNode.NAME);
                 profileUsage.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                add("profileUsage", profileUsage);
+                add(USAGE_NAME, profileUsage);
             }
-            rel("profileUsage", new Callback<Node[]>() {
+            rel(USAGE_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
                     System.out.println("Learning GET at " + state.time());
@@ -80,13 +83,13 @@ public class SensorNode extends AbstractNode{
     public void setProperty(String propertyName, byte propertyType, Object propertyValue){
     final NodeState state = _resolver.resolveState(this, true);
         if ("value".equals(propertyName) && state.time() > 0L) {
-            if (state.getFromKey("profileValue") == null){
+            if (state.getFromKey(VALUE_NAME) == null){
                 // create if not exist
                 Node profileValue = graph().newTypedNode(0, 0, GaussianSlotProfilingNode.NAME);
                 profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                add("profileValue", profileValue);
+                add(VALUE_NAME, profileValue);
             }
-            rel("profileValue", new Callback<Node[]>() {
+            rel(VALUE_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
                     System.out.println("Learning SET at " + state.time());

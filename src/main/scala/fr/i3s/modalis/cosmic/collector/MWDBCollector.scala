@@ -29,7 +29,9 @@ package fr.i3s.modalis.cosmic.collector
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
+import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
+import spray.http.MediaTypes._
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
 import spray.routing.HttpService
@@ -91,16 +93,29 @@ trait MWDBCollector extends HttpService with LazyLogging{
             logger.info(s"[GET] Name: $name Date: $date")
             val returnObject = new SensorDataReturn
             DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
-            complete(returnObject.value.value.toJson.toString())
+            respondWithMediaType(`application/json`) {
+              complete(returnObject.value.value.toJson.toString())
+            }
           }
         }
       } ~
-    path("calls") {
+    path("usage") {
+      get {
       parameter('name.as[String]) { (name) =>
-        logger.info(s"[GET] Name: $name")
-        DataStorage.getAmountCalls(name.replaceAll("\"", ""))
-        complete("")
+        respondWithMediaType(`application/json`) {
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.USAGE_NAME})").mkString)
+        }
       }
-    }
+      }
+    } ~
+      path("updates") {
+        get {
+        parameter('name.as[String]) { (name) =>
+          respondWithMediaType(`application/json`) {
+            complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.VALUE_NAME})").mkString)
+          }
+        }
+        }
+      }
   }
 }

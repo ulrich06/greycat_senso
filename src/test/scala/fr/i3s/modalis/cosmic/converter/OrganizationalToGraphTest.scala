@@ -33,7 +33,7 @@ import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
 import org.mwg.core.scheduler.NoopScheduler
-import org.mwg.task.{TaskAction, TaskContext, TaskFunctionSelect}
+import org.mwg.task.{Action, TaskContext, TaskFunctionSelect}
 import org.mwg.{Callback, GraphBuilder, LevelDBStorage, Node}
 import org.specs2.mutable.SpecificationWithJUnit
 
@@ -62,7 +62,7 @@ class OrganizationalToGraphTest extends SpecificationWithJUnit{
           new TaskFunctionSelect {
             override def select(node: Node) = true
           }
-        ).`then`(new TaskAction {
+        ).`then`(new Action {
           override def eval(context: TaskContext): Unit = {res = context.getPreviousResult.asInstanceOf[Array[Node]]}
         }).execute()
       })

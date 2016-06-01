@@ -29,8 +29,8 @@ package fr.i3s.modalis.cosmic.mwdb
 import java.lang.Boolean
 
 import fr.i3s.modalis.cosmic.collector.SensorData
-import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
+import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
 import org.mwg.task._
 
@@ -48,11 +48,16 @@ object DataStorage {
   // The graph
   private var _graph: Graph = _
 
+  // MWDB REST
+  val _httpPort = 8050
+  private lazy val gateway:RestGateway = RestGateway.expose(_graph, _httpPort)
+
   /**
     * Initialize the data storage by creating a root node and indexes
     */
   def init(graph: Graph) = {
     _graph = graph
+    gateway.start()
   }
 
 
@@ -107,19 +112,13 @@ object DataStorage {
       }).execute()
   }
 
-  def getAmountCalls(s: String) = {
-    _graph.newTask().fromIndex("nodes", s"name=$s").then(new Action {
-      override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
-        case Some(node) => println(node.asInstanceOf[SensorNode].getNbCalls.length)
-        case None => ()
-      }
-    }).execute()
-  }
-
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    override def run() = _graph.save(new Callback[Boolean] {
-      override def on(result: Boolean): Unit = { if (result) println("Graph saved") else println("An error occurred during the graph saving") }
-    })
+    override def run() = {
+      gateway.stop()
+      _graph.save(new Callback[Boolean] {
+        override def on(result: Boolean): Unit = { if (result) println("Graph saved") else println("An error occurred during the graph saving") }
+      })
+    }
   })
 }
 

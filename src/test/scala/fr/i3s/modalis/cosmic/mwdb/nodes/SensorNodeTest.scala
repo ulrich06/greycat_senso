@@ -31,7 +31,7 @@ import java.lang.Boolean
 import org.mwg._
 import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
-import org.mwg.task.{TaskAction, TaskContext}
+import org.mwg.task.{Action, TaskContext}
 import org.specs2.mutable.SpecificationWithJUnit
 
 /**
@@ -68,7 +68,7 @@ class SensorNodeTest extends SpecificationWithJUnit{
       var resultTest = false
       var sum:Array[Double] = Array(0.0)
       graph.connect(new Callback[Boolean] {
-        override def on(result: Boolean): Unit = graph.newTask().time(System.currentTimeMillis()).fromIndex("nodes", "name=index").then(new TaskAction {
+        override def on(result: Boolean): Unit = graph.newTask().time(System.currentTimeMillis()).fromIndex("nodes", "name=index").then(new Action {
           override def eval(context: TaskContext): Unit = {
             val result = context.getPreviousResult.asInstanceOf[Array[Node]](0).rel("profileUsage", new Callback[Array[Node]] {
               override def on(result: Array[Node]): Unit = {
