@@ -39,7 +39,8 @@ import org.mwg.plugin.NodeState;
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
 public class SensorNode extends AbstractNode{
-    final static int SLOTS = 12;
+    final static int SLOTS = 24;
+    final static long PERIOD = 24*3600;
     private static final String NAME = "SensorNode";
 
     public static final String USAGE_NAME = "profileUsage";
@@ -59,7 +60,7 @@ public class SensorNode extends AbstractNode{
                 // create if not exist
                 Node profileUsage = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileUsage.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE,24*3600L);
+                profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE,PERIOD);
                 add(USAGE_NAME, profileUsage);
             }
             rel(USAGE_NAME, new Callback<Node[]>() {
@@ -88,7 +89,7 @@ public class SensorNode extends AbstractNode{
                 // create if not exist
                 Node profileValue = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE,24*3600L);
+                profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE,PERIOD);
                 add(VALUE_NAME, profileValue);
             }
             rel(VALUE_NAME, new Callback<Node[]>() {
