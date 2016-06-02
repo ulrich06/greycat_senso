@@ -57,19 +57,20 @@ public class SensorNode extends AbstractNode{
         if ("value".equals(propertyName) && state.time() > 0L){
             if (state.getFromKey(USAGE_NAME) == null){
                 // create if not exist
-                Node profileUsage = graph().newTypedNode(0, 0, GaussianSlotProfilingNode.NAME);
+                Node profileUsage = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileUsage.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
+                profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE,24*3600L);
                 add(USAGE_NAME, profileUsage);
             }
             rel(USAGE_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
-                    System.out.println("Learning GET at " + state.time());
+                    System.out.println("Learning GET at " + time());
                     GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
+                    System.out.println("Learning GET profiler at "+ profiler.time());
                     profiler.learnArray(new double[]{1.0});
-                    System.out.println(profiler.getSum().length);
                     for (double v : profiler.getSum()) {
-                        System.out.println(v + "");
+                        System.out.print(v + " ");
                     }
                     System.out.println();
                 }
@@ -85,19 +86,20 @@ public class SensorNode extends AbstractNode{
         if ("value".equals(propertyName) && state.time() > 0L) {
             if (state.getFromKey(VALUE_NAME) == null){
                 // create if not exist
-                Node profileValue = graph().newTypedNode(0, 0, GaussianSlotProfilingNode.NAME);
+                Node profileValue = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
+                profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE,24*3600L);
                 add(VALUE_NAME, profileValue);
             }
             rel(VALUE_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
-                    System.out.println("Learning SET at " + state.time());
+                    System.out.println("Learning SET at "+ time());
                     GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
+                    System.out.println("Learning SET profiler at "+ profiler.time());
                     profiler.learnArray(new double[]{1.0});
-                    System.out.println(profiler.getSum().length);
                     for (double v : profiler.getSum()) {
-                        System.out.println(v + "");
+                        System.out.print(v + " ");
                     }
                     System.out.println();
                 }

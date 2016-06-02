@@ -57,7 +57,6 @@ object Launch extends App {
   val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
   implicit val timeout = Timeout(5.seconds)
 
-
   DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
     GraphBuilder.
       builder().
@@ -69,7 +68,7 @@ object Launch extends App {
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
       build()))
 
-  IO(Http) ? Http.Bind(service, interface = "localhost", port = serverPort)
+  IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
 
   RealTimeSmartCampusImporter(List(("TEMP_443V", 5), ("TEMP_CAMPUS", 2), ("TEMP_CAFEV", 1), ("DOOR_443", 0), ("NOISE_SPARKS_CORRIDOR", 2)))
 
