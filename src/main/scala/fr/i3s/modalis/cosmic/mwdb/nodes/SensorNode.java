@@ -47,6 +47,7 @@ public class SensorNode extends AbstractNode{
     public static final String UPDATE_NAME = "profileValue";
     public static final String STATS_NAME = "StatsValue";
 
+
     private int calls = 0;
 
     private SensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {

@@ -33,13 +33,14 @@ import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import fr.i3s.modalis.cosmic.collector.MWDBCollectorActor
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
-import fr.i3s.modalis.cosmic.importer.RealTimeSmartCampusImporter
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode.InterpolatedSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
 import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
+import org.mwg.ml.algorithm.regression.PolynomialNode
 import org.mwg.{GraphBuilder, LevelDBStorage}
 import spray.can.Http
 
@@ -65,11 +66,12 @@ object Launch extends App {
       withFactory(new SensorNodeFactory).
       withFactory(new ObservationNodeFactory).
       withFactory(new GaussianSlotProfilingNode.Factory()).
+      withFactory(new InterpolatedSensorNodeFactory).
+      withFactory(new PolynomialNode.Factory()).
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
+      withAutoSave(10000L).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
-
-  RealTimeSmartCampusImporter(List(("TEMP_443V", 5), ("TEMP_CAMPUS", 2), ("TEMP_CAFEV", 1), ("DOOR_443", 0), ("NOISE_SPARKS_CORRIDOR", 2)))
 
 }

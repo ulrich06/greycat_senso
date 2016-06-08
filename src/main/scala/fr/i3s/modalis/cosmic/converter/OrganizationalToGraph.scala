@@ -29,6 +29,7 @@ package fr.i3s.modalis.cosmic.converter
 import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
+import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
 import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
 import org.mwg._
 import org.mwg.task.{Action, TaskContext}
@@ -40,6 +41,8 @@ object OrganizationalToGraph extends LazyLogging{
 
   def convertSensor(s: Sensor, parent: Node, graph: Graph): Unit = {
     var sensorNode: Node = null
+    var interpolatedNode: Node = null
+
     graph.connect(new Callback[Boolean] {
 
       override def on(result: Boolean): Unit = {
@@ -47,9 +50,18 @@ object OrganizationalToGraph extends LazyLogging{
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
+
+        interpolatedNode = graph.newTypedNode(0, 0, "InterpolatedSensorNode")
+        interpolatedNode.asInstanceOf[InterpolatedSensorNode].initizalize()
+        interpolatedNode.setProperty("name", Type.STRING, s.name)
+        interpolatedNode.setProperty("type", Type.STRING, s.observes.name)
+
+
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
         graph.index("sensors", sensorNode, "name", null)
+        graph.index("interpolated", interpolatedNode, "name", null)
+
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
 
         graph.newTask()

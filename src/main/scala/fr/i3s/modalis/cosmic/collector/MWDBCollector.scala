@@ -89,33 +89,40 @@ trait MWDBCollector extends HttpService with LazyLogging{
     } ~
       path("sensors") {
         get {
-          parameters('name.as[String], 'date.as[Long]?) { (name, date) =>
+          parameters('name.as[String], 'date.as[Long]?, 'interpolated.as[Boolean] ? false) { (name, date, interpolated) =>
             logger.info(s"[GET] Name: $name Date: $date")
             val returnObject = new SensorDataReturn
-            DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
+            if (!interpolated)
+              DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
+            else {
+              DataStorage.getInterpolated(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
+              println(returnObject.value.value)
+            }
+
             respondWithMediaType(`application/json`) {
               complete(returnObject.value.value.toJson.toString())
             }
           }
         }
       } ~
-    path("usage") {
-      get {
-      parameter('name.as[String]) { (name) =>
-        respondWithMediaType(`application/json`) {
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.USAGE_NAME})").mkString)
-        }
-      }
-      }
-    } ~
-      path("updates") {
+      path("usage") {
         get {
-        parameter('name.as[String]) { (name) =>
-          respondWithMediaType(`application/json`) {
-            complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.UPDATE_NAME})").mkString)
+          parameter('name.as[String]) { (name) =>
+            respondWithMediaType(`application/json`) {
+              complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.USAGE_NAME})").mkString)
+            }
           }
         }
+      } ~
+      path("updates") {
+        get {
+          parameter('name.as[String]) { (name) =>
+            respondWithMediaType(`application/json`) {
+              complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.UPDATE_NAME})").mkString)
+            }
+          }
         }
+
       } ~
       path("stats") {
         get {

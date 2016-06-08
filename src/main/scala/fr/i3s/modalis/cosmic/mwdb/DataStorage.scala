@@ -26,9 +26,10 @@
 
 package fr.i3s.modalis.cosmic.mwdb
 
-import java.lang.Boolean
+import java.lang.{Boolean, Double}
 
 import fr.i3s.modalis.cosmic.collector.SensorData
+import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
@@ -112,6 +113,28 @@ object DataStorage {
         }
       }).execute()
   }
+
+  def getInterpolated(name:String, date:Long, returnObject: SensorDataReturn) = {
+    _graph.newTask().time(date).fromIndexAll("interpolated")
+      .select(new TaskFunctionSelect {
+        override def select(node: Node) = node.get("name").equals(name)
+      })
+      .`then`(new Action {
+        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+          case Some(node) => node.jump(date, new Callback[Node] {
+            override def on(result: Node): Unit = {
+              var value:Double = null
+              result.asInstanceOf[InterpolatedSensorNode].extrapolate(new Callback[Double] {
+                override def on(result: Double): Unit = value = result
+              })
+              returnObject.value.value = SensorData(result.get("name").toString, value.toString, result.time().toString)
+            }
+          })
+
+          case None => ()
+        }
+      }).execute()
+    }
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
     override def run() = {
