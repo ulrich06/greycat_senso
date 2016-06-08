@@ -78,6 +78,7 @@ object DataStorage {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
               result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
+              result.free()
               returnObject.value.value = sensorData
             }
           })

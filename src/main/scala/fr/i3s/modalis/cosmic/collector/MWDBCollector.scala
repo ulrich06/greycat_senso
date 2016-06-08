@@ -112,9 +112,18 @@ trait MWDBCollector extends HttpService with LazyLogging{
         get {
         parameter('name.as[String]) { (name) =>
           respondWithMediaType(`application/json`) {
-            complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.VALUE_NAME})").mkString)
+            complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.UPDATE_NAME})").mkString)
           }
         }
+        }
+      } ~
+      path("stats") {
+        get {
+          parameter('name.as[String]) { (name) =>
+            respondWithMediaType(`application/json`) {
+              complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$name)/traverse(${SensorNode.STATS_NAME})").mkString)
+            }
+          }
         }
       }
   }
