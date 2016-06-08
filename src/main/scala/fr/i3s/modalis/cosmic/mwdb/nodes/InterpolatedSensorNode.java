@@ -44,7 +44,9 @@ public class InterpolatedSensorNode extends PolynomialNode{
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
 
-    public void initizalize(){
+
+    @Override
+    public void init(){
         setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
     }
 

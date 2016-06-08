@@ -29,7 +29,6 @@ package fr.i3s.modalis.cosmic.converter
 import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
 import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
 import org.mwg._
 import org.mwg.task.{Action, TaskContext}
@@ -52,7 +51,6 @@ object OrganizationalToGraph extends LazyLogging{
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
 
         interpolatedNode = graph.newTypedNode(0, 0, "InterpolatedSensorNode")
-        interpolatedNode.asInstanceOf[InterpolatedSensorNode].initizalize()
         interpolatedNode.setProperty("name", Type.STRING, s.name)
         interpolatedNode.setProperty("type", Type.STRING, s.observes.name)
 
