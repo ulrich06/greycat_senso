@@ -28,9 +28,10 @@ package fr.i3s.modalis.cosmic.mwdb
 
 import java.lang.{Boolean, Double}
 
+import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
 import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
-import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
+import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, SensorDataReturn}
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
 import org.mwg.task._
@@ -87,6 +88,24 @@ object DataStorage {
           case None => ()
         }
       }).execute()
+
+    _graph.newTask().fromIndexAll("interpolated")
+      .select(new TaskFunctionSelect {
+        override def select(node: Node) = node.get("name").equals(sensorData.n)
+      })
+      .`then`(new Action {
+        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+          case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
+            override def on(result: Node): Unit = {
+              result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
+              result.free()
+              returnObject.value.value = sensorData
+            }
+          })
+
+          case None => ()
+        }
+      }).execute()
   }
 
   /**
@@ -96,7 +115,7 @@ object DataStorage {
     * @param date         Date
     * @param returnObject Return of the callback
     */
-  def get(name: String, date: Long, returnObject: SensorDataReturn) = {
+  def get(name: String, date: Long, returnObject: SensorDataReturn):Unit = {
     _graph.newTask().time(date).fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
@@ -112,6 +131,28 @@ object DataStorage {
           case None => ()
         }
       }).execute()
+  }
+
+  def get(name:String, dateBegin: Long, dateEnd: Long, returnObject: ArraySensorDataReturn):Unit = {
+    _graph.newTask().fromIndexAll("nodes").select(new TaskFunctionSelect {
+      override def select(node: Node) = node.get("name").equals(name)
+    })
+      .`then`(new Action {
+      override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => node.timepoints(dateBegin, dateEnd, new Callback[Array[Long]] {
+          override def on(result: Array[Long]): Unit = {
+            val mapResult = result.map {n =>
+              val returnSensorDataObject = new SensorDataReturn
+              get(name, n, returnSensorDataObject)
+              returnSensorDataObject.value.value
+
+            }
+            returnObject.value.value = mapResult
+          }
+        })
+        case None => ()
+      }
+    }).execute()
   }
 
   def getInterpolated(name:String, date:Long, returnObject: SensorDataReturn) = {
@@ -136,11 +177,11 @@ object DataStorage {
       }).execute()
     }
 
-  Runtime.getRuntime.addShutdownHook(new Thread() {
+  Runtime.getRuntime.addShutdownHook(new Thread() with LazyLogging {
     override def run() = {
       gateway.stop()
       _graph.save(new Callback[Boolean] {
-        override def on(result: Boolean): Unit = { if (result) println("Graph saved") else println("An error occurred during the graph saving") }
+        override def on(result: Boolean): Unit = { if (result) logger.info("Graph saved") else logger.error("An error occurred during the graph saving") }
       })
     }
   })

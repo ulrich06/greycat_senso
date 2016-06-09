@@ -46,3 +46,7 @@ class JSONReturn extends Return{
 class DoubleArrayReturn extends Return{
   val value = new Field({0.0}.asInstanceOf[Array[Double]])
 }
+
+class ArraySensorDataReturn extends Return {
+  val value = new Field(Array[SensorData]())
+}
