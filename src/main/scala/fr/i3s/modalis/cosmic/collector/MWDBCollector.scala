@@ -26,6 +26,8 @@
 
 package fr.i3s.modalis.cosmic.collector
 
+import java.text.{ParseException, SimpleDateFormat}
+
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
@@ -41,10 +43,10 @@ import spray.routing.RejectionHandler.Default
   * Actor representing a SmartCampus collector
   */
 
-class MWDBCollectorActor extends Actor with MWDBCollector {
+class MWDBCollectorActor extends Actor with SensorsRouting with CollectRouting {
   implicit val system = context.system
 
-  override def receive: Receive = runRoute(collect)
+  override def receive: Receive = runRoute(sensors ~ collect)
 
   override implicit def actorRefFactory: ActorRefFactory = context
 }
@@ -67,12 +69,73 @@ object SensorDataJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
 
 
 
+trait SensorsRouting extends HttpService with LazyLogging{
+  val sensors = {
+    import SensorDataJsonSupport._
+    get {
+      respondWithMediaType(`application/json`) {
+        path("sensors" / Segment / "stats") { sensor =>
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_NAME})").mkString)
+        } ~ path ("sensors" / Segment / "updates") { sensor =>
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_NAME})").mkString)
+        } ~ path ("sensors" / Segment / "usage") { sensor =>
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.USAGE_NAME})").mkString)
+        } ~ path("sensors" / Segment / "data") { sensor =>
+          parameter('date.as[String]) { date =>
+            var timestamp:Long = 0
+            try {
+              timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
+            }
+            catch {
+              case e:ParseException => {
+                /** Try long input **/
+                try {
+                  timestamp = date.toLong
+                }
+                catch {
+                  case e:NumberFormatException => complete(s"Error while parsing date $date")
+                }
+              }
+            }
+            logger.debug(s"Retrieve $sensor @ $timestamp")
+            val returnObject = new SensorDataReturn
+            DataStorage.get(sensor, timestamp, returnObject)
+            complete(returnObject.value.value.toJson.toString())
+          }
+        } ~ path("sensors" / Segment / "data" / "last") { sensor =>
+          val timestamp = System.currentTimeMillis() / 1000
+          logger.debug(s"Retrieve $sensor @ $timestamp")
+          val returnObject = new SensorDataReturn
+          DataStorage.get(sensor, timestamp, returnObject)
+          complete(returnObject.value.value.toJson.toString())
+        }
+      }
+    }
+  }
+}
 
-
+trait CollectRouting extends HttpService with LazyLogging {
+  val collect = {
+    import SensorDataJsonSupport._
+    import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
+    path("collect") {
+      post {
+        entity(as[SensorData]) {sensordata =>
+          logger.info(s"[POST] $sensordata")
+          val returnObject = new SensorDataReturn
+          DataStorage.update(sensordata, returnObject)
+          respondWithMediaType(`application/json`) {
+            complete(returnObject.value.value.toJson.toString())
+          }
+        }
+      }
+    }
+  }
+}
 /**
   * Collector
   */
-trait MWDBCollector extends HttpService with LazyLogging{
+/*trait MWDBCollector extends HttpService with LazyLogging{
   val collect = {
     import SensorDataJsonSupport._
     import spray.httpx.SprayJsonSupport.sprayJsonUnmarshaller
@@ -95,6 +158,7 @@ trait MWDBCollector extends HttpService with LazyLogging{
             if (!interpolated)
               DataStorage.get(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
             else {
+              logger.info("Interpolated value...")
               DataStorage.getInterpolated(name.replaceAll("\"", ""), date.getOrElse(System.currentTimeMillis() / 1000), returnObject)
               println(returnObject.value.value)
             }
@@ -134,4 +198,4 @@ trait MWDBCollector extends HttpService with LazyLogging{
         }
       }
   }
-}
+} */
