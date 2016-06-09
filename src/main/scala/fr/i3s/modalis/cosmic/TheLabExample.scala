@@ -122,5 +122,5 @@ object TheLabExample {
     ))
   ))
 
-  val catalog = Catalog("SmartCampus", infrastructure,  Set(SC_temperature_indoor, SC_state, SC_temperature_outdoor, SC_light, SC_noise, SC_opening, SC_power))
+  val catalog = Catalog("SmartCampus", infrastructure, Set(SC_temperature_indoor, SC_state, SC_temperature_outdoor, SC_light, SC_noise, SC_opening, SC_power))
 }

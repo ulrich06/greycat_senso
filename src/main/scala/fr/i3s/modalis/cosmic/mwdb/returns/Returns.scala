@@ -33,18 +33,21 @@ import play.api.libs.json.{JsObject, JsValue}
   * Handle the return of callbacks
   */
 trait Return {
-  val value:Field[_]
+  val value: Field[_]
 }
 
-class SensorDataReturn extends Return{
+class SensorDataReturn extends Return {
   val value = new Field(SensorData("", "", ""))
 }
 
-class JSONReturn extends Return{
-  val value = new Field(new JsObject(Map[String,JsValue]()))
+class JSONReturn extends Return {
+  val value = new Field(new JsObject(Map[String, JsValue]()))
 }
-class DoubleArrayReturn extends Return{
-  val value = new Field({0.0}.asInstanceOf[Array[Double]])
+
+class DoubleArrayReturn extends Return {
+  val value = new Field({
+    0.0
+  }.asInstanceOf[Array[Double]])
 }
 
 class ArraySensorDataReturn extends Return {

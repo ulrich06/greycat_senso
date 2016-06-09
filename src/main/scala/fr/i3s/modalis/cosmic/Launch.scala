@@ -45,6 +45,7 @@ import org.mwg.{GraphBuilder, LevelDBStorage}
 import spray.can.Http
 
 import scala.concurrent.duration._
+
 /**
   * Init the DB and the HTTP service
   *
@@ -73,5 +74,5 @@ object Launch extends App {
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
-
+  //HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/TEMP_443V.json")
 }

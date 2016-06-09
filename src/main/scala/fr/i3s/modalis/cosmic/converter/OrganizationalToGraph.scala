@@ -36,7 +36,7 @@ import org.mwg.task.{Action, TaskContext}
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 18/05/2016.
   */
-object OrganizationalToGraph extends LazyLogging{
+object OrganizationalToGraph extends LazyLogging {
 
   def convertSensor(s: Sensor, parent: Node, graph: Graph): Unit = {
     var sensorNode: Node = null
@@ -73,7 +73,7 @@ object OrganizationalToGraph extends LazyLogging{
 
   }
 
-  def convertContainer(container: Container, parent:Option[Node], catalog: Catalog, graph: Graph): Unit = {
+  def convertContainer(container: Container, parent: Option[Node], catalog: Catalog, graph: Graph): Unit = {
     graph.connect(new Callback[Boolean] {
       override def on(result: Boolean): Unit = {
         logger.debug(s"Creating container ${container.name}")
@@ -94,7 +94,7 @@ object OrganizationalToGraph extends LazyLogging{
 
         container.getSensors.foreach(s => {
           convertSensor(s, containerNode, graph)
-          var sensorNode:Node = null
+          var sensorNode: Node = null
           graph.newTask().fromIndex("sensors", s"name=${s.name}").`then`(new Action {
             override def eval(context: TaskContext): Unit = {
               sensorNode = context.getPreviousResult.asInstanceOf[Array[Node]](0)
@@ -103,11 +103,12 @@ object OrganizationalToGraph extends LazyLogging{
           containerNode.add("sensors", sensorNode)
         })
         val listOfInnerContainers = container.getContainersName.filterNot(_ equals container.name)
-        val listOfInnerContainersFirstLevel = listOfInnerContainers.intersect(container.contains.collect({case y => y}).map{_.name})
+        val listOfInnerContainersFirstLevel = listOfInnerContainers.intersect(container.contains.collect({ case y => y }).map {
+          _.name
+        })
         listOfInnerContainersFirstLevel.foreach(cName => {
           convertContainer(catalog.getContainer(cName).get, Some(containerNode), catalog, graph)
         })
-
 
 
       }

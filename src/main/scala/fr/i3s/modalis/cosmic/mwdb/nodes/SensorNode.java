@@ -38,16 +38,13 @@ import org.mwg.plugin.NodeState;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class SensorNode extends AbstractNode{
-    final static int SLOTS = 24;
-    final static long PERIOD = 24*3600;
-    private static final String NAME = "SensorNode";
-
+public class SensorNode extends AbstractNode {
     public static final String USAGE_NAME = "profileUsage";
     public static final String UPDATE_NAME = "profileValue";
     public static final String STATS_NAME = "StatsValue";
-
-
+    final static int SLOTS = 24;
+    final static long PERIOD = 24 * 3600;
+    private static final String NAME = "SensorNode";
     private int calls = 0;
 
     private SensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
@@ -57,12 +54,12 @@ public class SensorNode extends AbstractNode{
     @Override
     public Object get(String propertyName) {
         final NodeState state = _resolver.resolveState(this, true);
-        if ("value".equals(propertyName) && state.time() > 0L){
-            if (state.getFromKey(USAGE_NAME) == null){
+        if ("value".equals(propertyName) && state.time() > 0L) {
+            if (state.getFromKey(USAGE_NAME) == null) {
                 // create if not exist
                 Node profileUsage = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileUsage.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE,PERIOD);
+                profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE, PERIOD);
                 add(USAGE_NAME, profileUsage);
             }
             rel(USAGE_NAME, new Callback<Node[]>() {
@@ -70,7 +67,7 @@ public class SensorNode extends AbstractNode{
                 public void on(Node[] result) {
                     System.out.println("Learning GET at " + time());
                     GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
-                    System.out.println("Learning GET profiler at "+ profiler.time());
+                    System.out.println("Learning GET profiler at " + profiler.time());
                     profiler.learnArray(new double[]{1.0});
                     for (double v : profiler.getSum()) {
                         System.out.print(v + " ");
@@ -84,28 +81,28 @@ public class SensorNode extends AbstractNode{
     }
 
     @Override
-    public void setProperty(String propertyName, byte propertyType, final Object propertyValue){
-    final NodeState state = _resolver.resolveState(this, true);
+    public void setProperty(String propertyName, byte propertyType, final Object propertyValue) {
+        final NodeState state = _resolver.resolveState(this, true);
         if ("value".equals(propertyName) && state.time() > 0L) {
-            if (state.getFromKey(UPDATE_NAME) == null){
+            if (state.getFromKey(UPDATE_NAME) == null) {
                 // create if not exist
                 Node profileValue = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE,PERIOD);
+                profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, PERIOD);
                 add(UPDATE_NAME, profileValue);
             }
-            if (state.getFromKey(STATS_NAME) == null){
+            if (state.getFromKey(STATS_NAME) == null) {
                 Node meanValue = graph().newTypedNode(0, time(), GaussianSlotProfilingNode.NAME);
                 meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SLOTS);
-                meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE,PERIOD);
+                meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, PERIOD);
                 add(STATS_NAME, meanValue);
             }
             rel(UPDATE_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
-                    System.out.println("Learning SET at "+ time());
+                    System.out.println("Learning SET at " + time());
                     GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
-                    System.out.println("Learning SET profiler at "+ profiler.time());
+                    System.out.println("Learning SET profiler at " + profiler.time());
                     profiler.learnArray(new double[]{1.0});
                     for (double v : profiler.getSum()) {
                         System.out.print(v + " ");
@@ -116,9 +113,9 @@ public class SensorNode extends AbstractNode{
             rel(STATS_NAME, new Callback<Node[]>() {
                 @Override
                 public void on(Node[] result) {
-                    System.out.println("Learning SET at "+ time());
+                    System.out.println("Learning SET at " + time());
                     GaussianSlotProfilingNode profiler = (GaussianSlotProfilingNode) result[0];
-                    System.out.println("Learning SET profiler at "+ profiler.time());
+                    System.out.println("Learning SET profiler at " + profiler.time());
                     profiler.learnArray(new double[]{(Double) propertyValue});
                     for (double v : profiler.getSum()) {
                         System.out.print(v + " ");
@@ -134,7 +131,6 @@ public class SensorNode extends AbstractNode{
     public double[] getNbCalls() {
         return new double[]{};
     }
-
 
 
     public static class SensorNodeFactory implements NodeFactory {

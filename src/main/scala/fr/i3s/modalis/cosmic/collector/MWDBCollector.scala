@@ -87,6 +87,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
           }
           catch {
             case e: ParseException =>
+
               /** Try long input **/
               try {
                 timestamp = date.toLong
@@ -108,6 +109,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
           }
           catch {
             case e: ParseException =>
+
               /** Try long input **/
               try {
                 timestampB = tbegin.toLong

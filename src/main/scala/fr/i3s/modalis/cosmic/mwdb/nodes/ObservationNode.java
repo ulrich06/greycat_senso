@@ -35,7 +35,7 @@ import org.mwg.plugin.NodeFactory;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class ObservationNode extends AbstractNode{
+public class ObservationNode extends AbstractNode {
 
     private static final String NAME = "ObservationNode";
 
@@ -54,7 +54,6 @@ public class ObservationNode extends AbstractNode{
     public int getNbCalls() {
         return calls;
     }
-
 
 
     public static class ObservationNodeFactory implements NodeFactory {

@@ -46,13 +46,11 @@ import org.mwg.task._
 object DataStorage {
 
 
-
-  // The graph
-  private var _graph: Graph = _
-
+  private lazy val gateway: RestGateway = RestGateway.expose(_graph, _httpPort)
   // MWDB REST
   val _httpPort = 8050
-  private lazy val gateway:RestGateway = RestGateway.expose(_graph, _httpPort)
+  // The graph
+  private var _graph: Graph = _
 
   /**
     * Initialize the data storage by creating a root node and indexes
@@ -75,7 +73,7 @@ object DataStorage {
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
-        .`then`(new Action {
+      .`then`(new Action {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
@@ -108,6 +106,28 @@ object DataStorage {
       }).execute()
   }
 
+  def get(name: String, dateBegin: Long, dateEnd: Long, returnObject: ArraySensorDataReturn): Unit = {
+    _graph.newTask().fromIndexAll("nodes").select(new TaskFunctionSelect {
+      override def select(node: Node) = node.get("name").equals(name)
+    })
+      .`then`(new Action {
+        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+          case Some(node) => node.timepoints(dateBegin, dateEnd, new Callback[Array[Long]] {
+            override def on(result: Array[Long]): Unit = {
+              val mapResult = result.map { n =>
+                val returnSensorDataObject = new SensorDataReturn
+                get(name, n, returnSensorDataObject)
+                returnSensorDataObject.value.value
+
+              }
+              returnObject.value.value = mapResult
+            }
+          })
+          case None => ()
+        }
+      }).execute()
+  }
+
   /**
     * Get sensor data
     *
@@ -115,7 +135,7 @@ object DataStorage {
     * @param date         Date
     * @param returnObject Return of the callback
     */
-  def get(name: String, date: Long, returnObject: SensorDataReturn):Unit = {
+  def get(name: String, date: Long, returnObject: SensorDataReturn): Unit = {
     _graph.newTask().time(date).fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
@@ -133,29 +153,7 @@ object DataStorage {
       }).execute()
   }
 
-  def get(name:String, dateBegin: Long, dateEnd: Long, returnObject: ArraySensorDataReturn):Unit = {
-    _graph.newTask().fromIndexAll("nodes").select(new TaskFunctionSelect {
-      override def select(node: Node) = node.get("name").equals(name)
-    })
-      .`then`(new Action {
-      override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
-        case Some(node) => node.timepoints(dateBegin, dateEnd, new Callback[Array[Long]] {
-          override def on(result: Array[Long]): Unit = {
-            val mapResult = result.map {n =>
-              val returnSensorDataObject = new SensorDataReturn
-              get(name, n, returnSensorDataObject)
-              returnSensorDataObject.value.value
-
-            }
-            returnObject.value.value = mapResult
-          }
-        })
-        case None => ()
-      }
-    }).execute()
-  }
-
-  def getInterpolated(name:String, date:Long, returnObject: SensorDataReturn) = {
+  def getInterpolated(name: String, date: Long, returnObject: SensorDataReturn) = {
     _graph.newTask().time(date).fromIndexAll("interpolated")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
@@ -164,7 +162,7 @@ object DataStorage {
         override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
-              var value:Double = null
+              var value: Double = null
               result.asInstanceOf[InterpolatedSensorNode].extrapolate(new Callback[Double] {
                 override def on(result: Double): Unit = value = result
               })
@@ -175,13 +173,15 @@ object DataStorage {
           case None => ()
         }
       }).execute()
-    }
+  }
 
   Runtime.getRuntime.addShutdownHook(new Thread() with LazyLogging {
     override def run() = {
       gateway.stop()
       _graph.save(new Callback[Boolean] {
-        override def on(result: Boolean): Unit = { if (result) logger.info("Graph saved") else logger.error("An error occurred during the graph saving") }
+        override def on(result: Boolean): Unit = {
+          if (result) logger.info("Graph saved") else logger.error("An error occurred during the graph saving")
+        }
       })
     }
   })

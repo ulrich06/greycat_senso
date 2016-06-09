@@ -41,26 +41,23 @@ import scala.collection.mutable
   */
 object RealTimeSmartCampusImporter {
 
-  val history:scala.collection.mutable.Map[String, String] = mutable.Map[String, String]()
-
-  def PATTERN_SENSOR(s:String) = s"http://smartcampus.unice.fr/sensors/$s/data/last"
+  val history: scala.collection.mutable.Map[String, String] = mutable.Map[String, String]()
   val TARGET = "http://0.0.0.0:11000/collect"
   val SLEEP = 1000
 
-  def apply(lstSensors:List[(String, Int)]) = {
-    for (sensor <- lstSensors){
+  def apply(lstSensors: List[(String, Int)]) = {
+    for (sensor <- lstSensors) {
       history += ((sensor._1, "0"))
 
       new Thread(new Runnable {
         override def run(): Unit = {
-          while(true) {
+          while (true) {
             val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor._1)).mkString)
             //val date = ((source \\ "values").head \ "date").as[String]
             val name = (source \ "id").as[String]
-            val date = ((source  \ "values").head \ "date").as[String]
-            val value = ((source  \ "values").head \ "value").as[String]
-            if (history(name) != date){
-              println(s"Data from $name $date (value: $value)")
+            val date = ((source \ "values").head \ "date").as[String]
+            val value = ((source \ "values").head \ "value").as[String]
+            if (history(name) != date) {
               DataStorage.update(SensorData(name, value, date), new SensorDataReturn)
               history(name) = date
             }
@@ -71,15 +68,16 @@ object RealTimeSmartCampusImporter {
       }).start()
     }
   }
+
+  def PATTERN_SENSOR(s: String) = s"http://smartcampus.unice.fr/sensors/$s/data/last"
 }
 
 object HistorySmartCampusImporterFromURL {
 
   val TARGET = "http://0.0.0.0:11000/collect"
-  def PATTERN_SENSOR(s:String, tBegin:String, tEnd:String) = s"http://smartcampus.unice.fr/sensors/$s/data?date=$tBegin/$tEnd"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
-  def apply(lstSensors:List[String], tBegin:String, tEnd:String) = {
+  def apply(lstSensors: List[String], tBegin: String, tEnd: String) = {
     for (sensor <- lstSensors) {
       new Thread(new Runnable {
         override def run(): Unit = {
@@ -95,6 +93,8 @@ object HistorySmartCampusImporterFromURL {
       }).start()
     }
   }
+
+  def PATTERN_SENSOR(s: String, tBegin: String, tEnd: String) = s"http://smartcampus.unice.fr/sensors/$s/data?date=$tBegin/$tEnd"
 }
 
 object HistorySmartCampusImporterFromFile {
@@ -102,7 +102,7 @@ object HistorySmartCampusImporterFromFile {
   val TARGET = "http://0.0.0.0:11000/collect"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
-  def apply(pathToFile:String) = {
+  def apply(pathToFile: String) = {
 
     val source = Json.parse(scala.io.Source.fromFile(pathToFile).mkString)
     val name = (source \ "id").as[String]

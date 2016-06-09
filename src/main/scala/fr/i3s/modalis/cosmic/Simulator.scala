@@ -32,7 +32,6 @@ import fr.i3s.modalis.cosmic.collector.SensorData
 import play.api.libs.json.{JsArray, Json}
 
 
-
 /**
   * Just a small simulator that takes in into a SmartCampus measures file and generates
   * curl instructions to feed this application

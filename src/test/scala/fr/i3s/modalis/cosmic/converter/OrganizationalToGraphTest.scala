@@ -40,15 +40,15 @@ import org.specs2.mutable.SpecificationWithJUnit
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 20/05/2016.
   */
-class OrganizationalToGraphTest extends SpecificationWithJUnit{
+class OrganizationalToGraphTest extends SpecificationWithJUnit {
   val theTestedGraph = GraphBuilder.
-                          builder().
-                          withScheduler(new NoopScheduler()).
-                          withStorage(new LevelDBStorage("data")).
-                          withFactory(new ContainerNodeFactory).
-                          withFactory(new SensorNodeFactory).
-                          withFactory(new ObservationNodeFactory).
-                          build()
+    builder().
+    withScheduler(new NoopScheduler()).
+    withStorage(new LevelDBStorage("data")).
+    withFactory(new ContainerNodeFactory).
+    withFactory(new SensorNodeFactory).
+    withFactory(new ObservationNodeFactory).
+    build()
 
   val testingCatalog = TheLabExample.catalog
 
@@ -63,7 +63,9 @@ class OrganizationalToGraphTest extends SpecificationWithJUnit{
             override def select(node: Node) = true
           }
         ).`then`(new Action {
-          override def eval(context: TaskContext): Unit = {res = context.getPreviousResult.asInstanceOf[Array[Node]]}
+          override def eval(context: TaskContext): Unit = {
+            res = context.getPreviousResult.asInstanceOf[Array[Node]]
+          }
         }).execute()
       })
 

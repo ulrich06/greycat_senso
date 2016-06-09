@@ -36,7 +36,7 @@ import org.mwg.plugin.NodeFactory;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class InterpolatedSensorNode extends PolynomialNode{
+public class InterpolatedSensorNode extends PolynomialNode {
     final static double PRECISION = 1.0;
     private static final String NAME = "InterpolatedSensorNode";
 
@@ -46,7 +46,7 @@ public class InterpolatedSensorNode extends PolynomialNode{
 
 
     @Override
-    public void init(){
+    public void init() {
         setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
     }
 
