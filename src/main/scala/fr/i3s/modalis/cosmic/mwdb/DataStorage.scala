@@ -74,7 +74,7 @@ object DataStorage {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
       .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
               result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
@@ -92,7 +92,7 @@ object DataStorage {
         override def select(node: Node) = node.get("name").equals(sensorData.n)
       })
       .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
             override def on(result: Node): Unit = {
               result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
@@ -111,7 +111,7 @@ object DataStorage {
       override def select(node: Node) = node.get("name").equals(name)
     })
       .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.timepoints(dateBegin, dateEnd, new Callback[Array[Long]] {
             override def on(result: Array[Long]): Unit = {
               val mapResult = result.map { n =>
@@ -136,12 +136,12 @@ object DataStorage {
     * @param returnObject Return of the callback
     */
   def get(name: String, date: Long, returnObject: SensorDataReturn): Unit = {
-    _graph.newTask().time(date).fromIndexAll("nodes")
+    _graph.newTask().setTime(date).fromIndexAll("nodes")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })
       .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
               returnObject.value.value = SensorData(result.get("name").toString, result.get("value").toString, result.time().toString)
@@ -154,12 +154,12 @@ object DataStorage {
   }
 
   def getInterpolated(name: String, date: Long, returnObject: SensorDataReturn) = {
-    _graph.newTask().time(date).fromIndexAll("interpolated")
+    _graph.newTask().setTime(date).fromIndexAll("interpolated")
       .select(new TaskFunctionSelect {
         override def select(node: Node) = node.get("name").equals(name)
       })
       .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.getPreviousResult.asInstanceOf[Array[Node]].headOption match {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
               var value: Double = null

@@ -12,18 +12,14 @@
         <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>1.6</maven.compiler.target>
         <encoding>UTF-8</encoding>
-        <mwdb.version>1-SNAPSHOT</mwdb.version>
+        <mwdb.version>1</mwdb.version>
         <scala.version>2.11.5</scala.version>
         <scala.tools.version>2.11</scala.tools.version>
         <scala.compat.version>2.10</scala.compat.version>
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>org.kevoree.mwg.plugins</groupId>
-            <artifactId>rest</artifactId>
-            <version>${mwdb.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
@@ -32,6 +28,11 @@
         <dependency>
             <groupId>org.kevoree.mwg</groupId>
             <artifactId>core</artifactId>
+            <version>${mwdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>rest</artifactId>
             <version>${mwdb.version}</version>
         </dependency>
         <dependency>

@@ -32,7 +32,6 @@ import fr.i3s.modalis.cosmic.TheLabExample
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
-import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.task.{Action, TaskContext, TaskFunctionSelect}
 import org.mwg.{Callback, GraphBuilder, LevelDBStorage, Node}
 import org.specs2.mutable.SpecificationWithJUnit
@@ -41,13 +40,11 @@ import org.specs2.mutable.SpecificationWithJUnit
   * Created by Cyril Cecchinel - I3S Laboratory on 20/05/2016.
   */
 class OrganizationalToGraphTest extends SpecificationWithJUnit {
-  val theTestedGraph = GraphBuilder.
-    builder().
-    withScheduler(new NoopScheduler()).
+  val theTestedGraph = new GraphBuilder().
     withStorage(new LevelDBStorage("data")).
-    withFactory(new ContainerNodeFactory).
-    withFactory(new SensorNodeFactory).
-    withFactory(new ObservationNodeFactory).
+    addNodeType(new ContainerNodeFactory).
+    addNodeType(new SensorNodeFactory).
+    addNodeType(new ObservationNodeFactory).
     build()
 
   val testingCatalog = TheLabExample.catalog
@@ -64,7 +61,7 @@ class OrganizationalToGraphTest extends SpecificationWithJUnit {
           }
         ).`then`(new Action {
           override def eval(context: TaskContext): Unit = {
-            res = context.getPreviousResult.asInstanceOf[Array[Node]]
+            res = context.result().asInstanceOf[Array[Node]]
           }
         }).execute()
       })

@@ -38,7 +38,6 @@ import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode.InterpolatedSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
-import org.mwg.core.scheduler.NoopScheduler
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
 import org.mwg.ml.algorithm.regression.PolynomialNode
 import org.mwg.{GraphBuilder, LevelDBStorage}
@@ -59,20 +58,18 @@ object Launch extends App {
   val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
   implicit val timeout = Timeout(5.seconds)
 
+
   DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
-    GraphBuilder.
-      builder().
-      withScheduler(new NoopScheduler()).
-      withFactory(new ContainerNodeFactory).
-      withFactory(new SensorNodeFactory).
-      withFactory(new ObservationNodeFactory).
-      withFactory(new GaussianSlotProfilingNode.Factory()).
-      withFactory(new InterpolatedSensorNodeFactory).
-      withFactory(new PolynomialNode.Factory()).
+    new GraphBuilder().
+      addNodeType(new ContainerNodeFactory).
+      addNodeType(new SensorNodeFactory).
+      addNodeType(new ObservationNodeFactory).
+      addNodeType(new GaussianSlotProfilingNode.Factory()).
+      addNodeType(new InterpolatedSensorNodeFactory).
+      addNodeType(new PolynomialNode.Factory()).
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
-      withAutoSave(10000L).
+      saveEvery(10000L).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
-  //HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/TEMP_443V.json")
 }
