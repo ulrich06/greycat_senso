@@ -52,7 +52,6 @@ object OrganizationalToGraph extends LazyLogging {
 
         interpolatedNode = graph.newTypedNode(0, 0, "InterpolatedSensorNode")
         interpolatedNode.setProperty("name", Type.STRING, s.name)
-        interpolatedNode.setProperty("type", Type.STRING, s.observes.name)
 
 
         parent.add("sensor", sensorNode)

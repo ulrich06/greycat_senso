@@ -37,7 +37,7 @@ import org.mwg.plugin.NodeFactory;
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
 public class InterpolatedSensorNode extends PolynomialNode {
-    final static double PRECISION = 1.0;
+    final static double PRECISION = 3.0;
     private static final String NAME = "InterpolatedSensorNode";
 
     private InterpolatedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
