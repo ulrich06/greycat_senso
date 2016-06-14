@@ -75,11 +75,12 @@ trait SensorsRouting extends HttpService with LazyLogging {
     get {
       respondWithMediaType(`application/json`) {
         path("sensors" / Segment / "stats") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_NAME})").mkString)
+          //complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_NAME})").mkString)
+          complete("Not yet...")
         } ~ path("sensors" / Segment / "updates") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_NAME})").mkString)
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "usage") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.USAGE_NAME})").mkString)
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.USE_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "data" / Segment) { (sensor, date) =>
           var timestamp: Long = 0
           try {
