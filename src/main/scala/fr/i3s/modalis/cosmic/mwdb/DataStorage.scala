@@ -26,10 +26,11 @@
 
 package fr.i3s.modalis.cosmic.mwdb
 
-import java.lang.Boolean
+import java.lang.{Boolean, Double}
 
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
+import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, SensorDataReturn}
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
@@ -43,6 +44,7 @@ import org.mwg.task._
   * Sensor data storage
   */
 object DataStorage {
+
 
 
   private lazy val gateway: RestGateway = RestGateway.expose(_graph, _httpPort)
@@ -127,6 +129,31 @@ object DataStorage {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
               returnObject.value.value = SensorData(result.get("name").toString, result.get("value").toString, result.time().toString)
+            }
+          })
+
+          case None => ()
+        }
+      }).execute()
+  }
+
+  def getInterpolated(name: String, date: Long, returnObject: SensorDataReturn) = {
+    _graph.newTask().setTime(date).fromIndexAll("nodes")
+      .select(new TaskFunctionSelect {
+        override def select(node: Node) = node.get("name").equals(name)
+      })
+      .`then`(new Action {
+        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
+          case Some(node) => node.jump(date, new Callback[Node] {
+            override def on(result: Node): Unit = {
+              result.rel("PRED", new Callback[Array[Node]] {
+                override def on(a: Array[Node]): Unit = a(0).asInstanceOf[InterpolatedSensorNode].extrapolate(new Callback[Double] {
+                  override def on(a: Double): Unit = {
+                    returnObject.value.value = SensorData(result.get("name").toString, a.toString, result.time().toString)
+                  }
+                })
+              })
+
             }
           })
 
