@@ -106,6 +106,7 @@ object SensorNode {
   val USE_RELATIONSHIP = "USE"
   val UPDATE_RELATIONSHIP = "UPDATE"
   val STATS_RELATIONSHIP = "STATS"
+  val PRED_RELATIONSHIP = "PRED"
 
   val SLOTS: Int = 24
   val PERIOD: Long = 24 * 3600
