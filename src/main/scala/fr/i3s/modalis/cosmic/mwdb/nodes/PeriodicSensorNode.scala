@@ -26,6 +26,8 @@
 
 package fr.i3s.modalis.cosmic.mwdb.nodes
 
+import java.lang.Boolean
+
 import org.mwg.plugin.{NodeFactory, NodeState}
 import org.mwg.{Callback, Graph, Node}
 
@@ -40,16 +42,21 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
     if ("value".equals(propertyName) && state.time() > 0L) {
       if (state.getFromKey(SensorNode.PRED_RELATIONSHIP) == null) {
         // create if not exist
-        val predProfile: Node = graph.newTypedNode(0, 0, PeriodicSensorNode.NAME)
+        val predProfile: Node = graph.newTypedNode(0, 0, InterpolatedSensorNode.NAME)
         add(SensorNode.PRED_RELATIONSHIP, predProfile)
       }
 
       rel(SensorNode.PRED_RELATIONSHIP, new Callback[Array[Node]] {
-        override def on(a: Array[Node]): Unit = a(0).setProperty(propertyName, propertyType, propertyValue)
+        override def on(a: Array[Node]): Unit = {
+          a(0).asInstanceOf[InterpolatedSensorNode].learn(propertyValue.asInstanceOf[Double], new Callback[Boolean] {
+            override def on(a: Boolean): Unit = true
+          })
+          a(0).free()
+        }
       })
     }
 
-    super.get(propertyName)
+    super.setProperty(propertyName, propertyType, propertyValue)
   }
 
 }

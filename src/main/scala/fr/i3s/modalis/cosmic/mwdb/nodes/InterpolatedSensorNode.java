@@ -38,7 +38,7 @@ import org.mwg.plugin.NodeFactory;
  */
 public class InterpolatedSensorNode extends PolynomialNode {
     final static double PRECISION = 3.0;
-    private static final String NAME = "InterpolatedSensorNode";
+    final static String NAME = "InterpolatedSensorNode";
 
     private InterpolatedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);

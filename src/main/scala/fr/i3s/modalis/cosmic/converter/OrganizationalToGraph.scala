@@ -29,7 +29,8 @@ package fr.i3s.modalis.cosmic.converter
 import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.organizational.{Catalog, Container, Observation, Sensor}
+import fr.i3s.modalis.cosmic.mwdb.nodes.{PeriodicSensorNode, SensorNode}
+import fr.i3s.modalis.cosmic.organizational._
 import org.mwg._
 import org.mwg.task.{Action, TaskContext}
 
@@ -44,7 +45,16 @@ object OrganizationalToGraph extends LazyLogging {
     graph.connect(new Callback[Boolean] {
 
       override def on(result: Boolean): Unit = {
-        sensorNode = graph.newTypedNode(0, 0, "SensorNode")
+        if (s.isInstanceOf[Periodic]) {
+          sensorNode = graph.newTypedNode(0, 0, PeriodicSensorNode.NAME)
+          sensorNode.setProperty("collect", Type.STRING, "Periodic")
+          logger.debug(s"Periodic created: $sensorNode")
+        }
+        else {
+          sensorNode = graph.newTypedNode(0, 0, SensorNode.NAME)
+          logger.debug(s"Other created: $sensorNode")
+        }
+
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
@@ -55,7 +65,6 @@ object OrganizationalToGraph extends LazyLogging {
         graph.index("sensors", sensorNode, "name", null)
 
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
-
         graph.newTask()
           .fromIndex("types", s"name=${s.observes.name}")
           .`then`(new Action {
@@ -86,9 +95,11 @@ object OrganizationalToGraph extends LazyLogging {
         graph.index("containers", containerNode, "name", null)
 
 
+
         container.getSensors.foreach(s => {
           convertSensor(s, containerNode, graph)
           var sensorNode: Node = null
+          logger.debug(s"Looking for node ${s.name}")
           graph.newTask().fromIndex("sensors", s"name=${s.name}").`then`(new Action {
             override def eval(context: TaskContext): Unit = {
               sensorNode = context.result().asInstanceOf[Array[Node]](0)

@@ -74,7 +74,9 @@ trait SensorsRouting extends HttpService with LazyLogging {
     import SensorDataJsonSupport._
     get {
       respondWithMediaType(`application/json`) {
-        path("sensors" / Segment / "stats") { sensor =>
+        path("sensors" / Segment / "predictions") { sensor =>
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.PRED_RELATIONSHIP})").mkString)
+        } ~ path("sensors" / Segment / "stats") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "updates") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_RELATIONSHIP})").mkString)

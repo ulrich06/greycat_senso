@@ -37,6 +37,7 @@ import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode.InterpolatedSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.nodes.PeriodicSensorNode.PeriodicSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
 import org.mwg.ml.algorithm.regression.PolynomialNode
@@ -67,6 +68,7 @@ object Launch extends App {
       addNodeType(new GaussianSlotProfilingNode.Factory()).
       addNodeType(new InterpolatedSensorNodeFactory).
       addNodeType(new PolynomialNode.Factory()).
+      addNodeType(new PeriodicSensorNodeFactory).
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
       saveEvery(10000L).
       build()))
