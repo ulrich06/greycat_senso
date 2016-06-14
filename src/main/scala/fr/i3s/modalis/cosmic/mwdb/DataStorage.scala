@@ -26,11 +26,10 @@
 
 package fr.i3s.modalis.cosmic.mwdb
 
-import java.lang.{Boolean, Double}
+import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
-import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, SensorDataReturn}
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
@@ -87,23 +86,6 @@ object DataStorage {
         }
       }).execute()
 
-    _graph.newTask().fromIndexAll("interpolated")
-      .select(new TaskFunctionSelect {
-        override def select(node: Node) = node.get("name").equals(sensorData.n)
-      })
-      .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
-          case Some(node) => node.jump(sensorData.t.toLong, new Callback[Node] {
-            override def on(result: Node): Unit = {
-              result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
-              result.free()
-              returnObject.value.value = sensorData
-            }
-          })
-
-          case None => ()
-        }
-      }).execute()
   }
 
   def get(name: String, dateBegin: Long, dateEnd: Long, returnObject: ArraySensorDataReturn): Unit = {
@@ -145,28 +127,6 @@ object DataStorage {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
               returnObject.value.value = SensorData(result.get("name").toString, result.get("value").toString, result.time().toString)
-            }
-          })
-
-          case None => ()
-        }
-      }).execute()
-  }
-
-  def getInterpolated(name: String, date: Long, returnObject: SensorDataReturn) = {
-    _graph.newTask().setTime(date).fromIndexAll("interpolated")
-      .select(new TaskFunctionSelect {
-        override def select(node: Node) = node.get("name").equals(name)
-      })
-      .`then`(new Action {
-        override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
-          case Some(node) => node.jump(date, new Callback[Node] {
-            override def on(result: Node): Unit = {
-              var value: Double = null
-              result.asInstanceOf[InterpolatedSensorNode].extrapolate(new Callback[Double] {
-                override def on(result: Double): Unit = value = result
-              })
-              returnObject.value.value = SensorData(result.get("name").toString, value.toString, result.time().toString)
             }
           })
 

@@ -40,7 +40,6 @@ object OrganizationalToGraph extends LazyLogging {
 
   def convertSensor(s: Sensor, parent: Node, graph: Graph): Unit = {
     var sensorNode: Node = null
-    var interpolatedNode: Node = null
 
     graph.connect(new Callback[Boolean] {
 
@@ -50,14 +49,10 @@ object OrganizationalToGraph extends LazyLogging {
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
         sensorNode.setProperty("type", Type.STRING, s.observes.name)
 
-        interpolatedNode = graph.newTypedNode(0, 0, "InterpolatedSensorNode")
-        interpolatedNode.setProperty("name", Type.STRING, s.name)
-
 
         parent.add("sensor", sensorNode)
         graph.index("nodes", sensorNode, "name", null)
         graph.index("sensors", sensorNode, "name", null)
-        graph.index("interpolated", interpolatedNode, "name", null)
 
         logger.debug(s"Created sensor node ${sensorNode.get("name")}")
 
