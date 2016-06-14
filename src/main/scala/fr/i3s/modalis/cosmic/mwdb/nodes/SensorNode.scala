@@ -71,11 +71,11 @@ case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, c
         profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
         add(SensorNode.UPDATE_RELATIONSHIP, profileValue)
       }
-      if (state.getFromKey(SensorNode.USE_RELATIONSHIP) == null) {
+      if (state.getFromKey(SensorNode.STATS_RELATIONSHIP) == null) {
         val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
         meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
         meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
-        add(SensorNode.USE_RELATIONSHIP, meanValue)
+        add(SensorNode.STATS_RELATIONSHIP, meanValue)
       }
       rel(SensorNode.UPDATE_RELATIONSHIP, new Callback[Array[Node]]() {
         def on(result: Array[Node]) {
@@ -89,16 +89,10 @@ case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, c
           println()
         }
       })
-      rel(SensorNode.USE_RELATIONSHIP, new Callback[Array[Node]]() {
+      rel(SensorNode.STATS_RELATIONSHIP, new Callback[Array[Node]]() {
         def on(result: Array[Node]) {
-          System.out.println("Learning SET at " + time)
           val profiler: GaussianSlotProfilingNode = result(0).asInstanceOf[GaussianSlotProfilingNode]
-          System.out.println("Learning SET profiler at " + profiler.time)
           profiler.learnArray(Array[Double](propertyValue.asInstanceOf[Double]))
-          for (v <- profiler.getSum) {
-            print(v + " ")
-          }
-          println()
         }
       })
     }
@@ -111,8 +105,11 @@ case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, c
 object SensorNode {
   val USE_RELATIONSHIP = "USE"
   val UPDATE_RELATIONSHIP = "UPDATE"
+  val STATS_RELATIONSHIP = "STATS"
+
   val SLOTS: Int = 24
   val PERIOD: Long = 24 * 3600
+
   val NAME: String = "SensorNode"
 
   sealed class SensorNodeFactory extends NodeFactory {

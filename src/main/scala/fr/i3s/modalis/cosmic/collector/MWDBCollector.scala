@@ -75,32 +75,39 @@ trait SensorsRouting extends HttpService with LazyLogging {
     get {
       respondWithMediaType(`application/json`) {
         path("sensors" / Segment / "stats") { sensor =>
-          //complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_NAME})").mkString)
-          complete("Not yet...")
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "updates") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "usage") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.USE_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "data" / Segment) { (sensor, date) =>
-          var timestamp: Long = 0
-          try {
-            timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
-          }
-          catch {
-            case e: ParseException =>
+          if ("last".equals(date)) {
+            val timestamp = System.currentTimeMillis() / 1000
+            logger.debug(s"Retrieve $sensor @ $timestamp")
+            val returnObject = new SensorDataReturn
+            DataStorage.get(sensor, timestamp, returnObject)
+            complete(returnObject.value.value.toJson.toString())
+          } else {
+            var timestamp: Long = 0
+            try {
+              timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
+            }
+            catch {
+              case e: ParseException =>
 
-              /** Try long input **/
-              try {
-                timestamp = date.toLong
-              }
-              catch {
-                case e: NumberFormatException => complete(s"Error while parsing date $date")
-              }
+                /** Try long input **/
+                try {
+                  timestamp = date.toLong
+                }
+                catch {
+                  case e: NumberFormatException => complete(s"Error while parsing date $date")
+                }
+            }
+            logger.debug(s"Retrieve $sensor @ $timestamp")
+            val returnObject = new SensorDataReturn
+            DataStorage.get(sensor, timestamp, returnObject)
+            complete(returnObject.value.value.toJson.toString())
           }
-          logger.debug(s"Retrieve $sensor @ $timestamp")
-          val returnObject = new SensorDataReturn
-          DataStorage.get(sensor, timestamp, returnObject)
-          complete(returnObject.value.value.toJson.toString())
         } ~ path("sensors" / Segment / "data" / Segment / Segment) { (sensor, tbegin, tend) =>
           var timestampB: Long = 0
           var timestampE: Long = 0
@@ -128,12 +135,6 @@ trait SensorsRouting extends HttpService with LazyLogging {
         } ~ path("sensors" / Segment / "data") { sensor =>
           val returnObject = new ArraySensorDataReturn
           DataStorage.get(sensor, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, returnObject)
-          complete(returnObject.value.value.toJson.toString())
-        } ~ path("sensors" / Segment / "data" / "last") { sensor =>
-          val timestamp = System.currentTimeMillis() / 1000
-          logger.debug(s"Retrieve $sensor @ $timestamp")
-          val returnObject = new SensorDataReturn
-          DataStorage.get(sensor, timestamp, returnObject)
           complete(returnObject.value.value.toJson.toString())
         }
       }
