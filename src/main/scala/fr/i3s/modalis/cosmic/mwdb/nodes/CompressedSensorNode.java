@@ -26,9 +26,7 @@
 
 package fr.i3s.modalis.cosmic.mwdb.nodes;
 
-import org.mwg.Graph;
-import org.mwg.Node;
-import org.mwg.Type;
+import org.mwg.*;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.plugin.NodeFactory;
 
@@ -47,6 +45,18 @@ public class CompressedSensorNode extends PolynomialNode {
     @Override
     public void init() {
         setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
+    }
+
+    public void getInflexions() {
+        this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
+            @Override
+            public void on(long[] longs) {
+                for (long _long : longs) {
+                    System.out.print(_long + " ");
+                }
+                System.out.println();
+            }
+        });
     }
 
     public static class CompressedSensorNodeFactory implements NodeFactory {
