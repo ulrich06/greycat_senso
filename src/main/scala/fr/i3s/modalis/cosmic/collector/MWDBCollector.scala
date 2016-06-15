@@ -32,7 +32,7 @@ import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
 import org.mwg.Constants
 import spray.http.MediaTypes._
 import spray.httpx.SprayJsonSupport
@@ -73,35 +73,16 @@ trait SensorsRouting extends HttpService with LazyLogging {
   val sensors = {
     import SensorDataJsonSupport._
     get {
+      path("sensors" / Segment / "compression") { sensor =>
+        val returnObject = new DoubleReturn
+        DataStorage.getCompressionRate(sensor, returnObject)
+        complete(returnObject.value.value.toString())
+      } ~
       respondWithMediaType(`application/json`) {
-        path("sensors" / Segment / "predictions") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.PRED_RELATIONSHIP})").mkString)
-        } ~ path("sensors" / Segment / "predictions" / Segment) { (sensor, date) =>
-          var timestamp: Long = 0
-          try {
-            timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
-          }
-          catch {
-            case e: ParseException =>
-
-              /** Try long input **/
-              try {
-                timestamp = date.toLong
-              }
-              catch {
-                case e: NumberFormatException => complete(s"Error while parsing date $date")
-              }
-          }
-          logger.debug(s"Retrieve $sensor @ $timestamp")
-          val returnObject = new SensorDataReturn
-          DataStorage.getInterpolated(sensor, timestamp, returnObject)
-          complete(returnObject.value.value.toJson.toString())
-        } ~ path("sensors" / Segment / "stats") { sensor =>
+        path("sensors" / Segment / "stats") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
-        } ~ path("sensors" / Segment / "updates") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.UPDATE_RELATIONSHIP})").mkString)
-        } ~ path("sensors" / Segment / "usage") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.USE_RELATIONSHIP})").mkString)
+        } ~ path("sensors" / Segment / "activity") { sensor =>
+          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.ACTIVITY_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "data" / Segment) { (sensor, date) =>
           if ("last".equals(date)) {
             val timestamp = System.currentTimeMillis() / 1000

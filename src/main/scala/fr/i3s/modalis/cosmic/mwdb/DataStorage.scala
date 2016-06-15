@@ -30,8 +30,8 @@ import java.lang.{Boolean, Double}
 
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
-import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.nodes.{CompressedSensorNode, SensorNode}
+import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
 import org.mwg.task._
@@ -52,15 +52,27 @@ object DataStorage {
   val _httpPort = 8050
   // The graph
   private var _graph: Graph = _
-
+  private var isInitialized = false
   /**
     * Initialize the data storage by creating a root node and indexes
     */
   def init(graph: Graph) = {
     _graph = graph
+    isInitialized = true
     gateway.start()
   }
 
+  def getGraph = if (isInitialized) _graph else throw new RuntimeException("Data storage not yet initialized")
+
+
+  def getCompressionRate(sensor: String, returnObject: DoubleReturn) = {
+    _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
+      override def eval(taskContext: TaskContext): Unit = taskContext.result().asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => returnObject.value.value = node.asInstanceOf[SensorNode].getDataCompressionRatio
+        case None => ()
+      }
+    }).execute()
+  }
 
   /**
     * Update a sensor value
@@ -147,7 +159,7 @@ object DataStorage {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
               result.rel("PRED", new Callback[Array[Node]] {
-                override def on(a: Array[Node]): Unit = a(0).asInstanceOf[InterpolatedSensorNode].extrapolate(new Callback[Double] {
+                override def on(a: Array[Node]): Unit = a(0).asInstanceOf[CompressedSensorNode].extrapolate(new Callback[Double] {
                   override def on(a: Double): Unit = {
                     returnObject.value.value = SensorData(result.get("name").toString, a.toString, result.time().toString)
                   }

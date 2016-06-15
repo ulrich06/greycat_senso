@@ -34,11 +34,11 @@ import com.typesafe.config.ConfigFactory
 import fr.i3s.modalis.cosmic.collector.MWDBCollectorActor
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
+import fr.i3s.modalis.cosmic.mwdb.nodes.CompressedSensorNode.CompressedSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.InterpolatedSensorNode.InterpolatedSensorNodeFactory
+import fr.i3s.modalis.cosmic.mwdb.nodes.EventSensorNode.EventSensorNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
 import fr.i3s.modalis.cosmic.mwdb.nodes.PeriodicSensorNode.PeriodicSensorNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode.SensorNodeFactory
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
 import org.mwg.ml.algorithm.regression.PolynomialNode
 import org.mwg.{GraphBuilder, LevelDBStorage}
@@ -63,12 +63,12 @@ object Launch extends App {
   DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
     new GraphBuilder().
       addNodeType(new ContainerNodeFactory).
-      addNodeType(new SensorNodeFactory).
       addNodeType(new ObservationNodeFactory).
       addNodeType(new GaussianSlotProfilingNode.Factory()).
-      addNodeType(new InterpolatedSensorNodeFactory).
+      addNodeType(new CompressedSensorNodeFactory).
       addNodeType(new PolynomialNode.Factory()).
       addNodeType(new PeriodicSensorNodeFactory).
+      addNodeType(new EventSensorNodeFactory).
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
       saveEvery(10000L).
       build()))

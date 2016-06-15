@@ -29,7 +29,7 @@ package fr.i3s.modalis.cosmic.converter
 import java.lang.Boolean
 
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.mwdb.nodes.{PeriodicSensorNode, SensorNode}
+import fr.i3s.modalis.cosmic.mwdb.nodes.{EventSensorNode, PeriodicSensorNode}
 import fr.i3s.modalis.cosmic.organizational._
 import org.mwg._
 import org.mwg.task.{Action, TaskContext}
@@ -48,12 +48,12 @@ object OrganizationalToGraph extends LazyLogging {
         if (s.isInstanceOf[Periodic]) {
           sensorNode = graph.newTypedNode(0, 0, PeriodicSensorNode.NAME)
           sensorNode.setProperty("collect", Type.STRING, "Periodic")
-          logger.debug(s"Periodic created: $sensorNode")
         }
-        else {
-          sensorNode = graph.newTypedNode(0, 0, SensorNode.NAME)
-          logger.debug(s"Other created: $sensorNode")
+        if (s.isInstanceOf[EventBased]) {
+          sensorNode = graph.newTypedNode(0, 0, EventSensorNode.NAME)
+          sensorNode.setProperty("collect", Type.STRING, "Event")
         }
+
 
         sensorNode.setProperty("name", Type.STRING, s.name)
         sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)

@@ -26,76 +26,93 @@
 
 package fr.i3s.modalis.cosmic.mwdb.nodes
 
+import java.lang.Boolean
+
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
-import org.mwg.plugin.{AbstractNode, NodeFactory, NodeState}
-import org.mwg.{Callback, Graph, Node}
+import org.mwg.plugin.{AbstractNode, NodeState}
+import org.mwg.{Callback, Constants, Graph, Node}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 13/06/2016.
   */
-case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
+abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
   extends AbstractNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long]) {
 
+  def getDataCompressionRatio = getNbPoints / getNbPointsCompressed
 
-  override def get(propertyName: String): Object = {
-    val state: NodeState = _resolver.resolveState(this, true)
-    if ("value" == propertyName && state.time > 0L) {
-      if (state.getFromKey(SensorNode.USE_RELATIONSHIP) == null) {
-        val profileUsage: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
-        profileUsage.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
-        profileUsage.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
-        add(SensorNode.USE_RELATIONSHIP, profileUsage)
+  def getNbPoints = {
+    println(s"Time getNb: ${time()}")
+    var result: Int = 0
+    this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]]() {
+      def on(longs: Array[Long]) {
+        result = longs.length
       }
-      rel(SensorNode.USE_RELATIONSHIP, new Callback[Array[Node]]() {
-        def on(result: Array[Node]) {
-          System.out.println("Learning GET at " + time)
-          val profiler: GaussianSlotProfilingNode = result(0).asInstanceOf[GaussianSlotProfilingNode]
-          System.out.println("Learning GET profiler at " + profiler.time)
-          profiler.learnArray(Array[Double](1.0))
-          for (v <- profiler.getSum) {
-            print(v + " ")
-          }
-          println()
-        }
-      })
-    }
-    super.get(propertyName)
+    })
+    println(s"Total not compressed: $result")
+    result
+  }
+
+  def getNbPointsCompressed = {
+    var result: Int = 0
+    println(s"Time getNbCompressed: ${time()}")
+    rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+      override def on(a: Array[Node]): Unit = {
+        val _node = a(0).asInstanceOf[CompressedSensorNode]
+        _node.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]] {
+          override def on(a: Array[Long]): Unit = result = a.length
+        })
+      }
+    })
+    println(s"Total compressed: $result")
+    result
+  }
+
+  /**
+    * Build the activity node related to the sensor
+    *
+    * @return Activity node
+    */
+  def buildActivityNode(): Node
+
+
+  override def init(): Unit = {
+    val compressedNode: Node = graph.newTypedNode(0, time, CompressedSensorNode.NAME)
+    add(SensorNode.COMPRESSED_RELATIONSHIP, compressedNode)
+
+    val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
+    meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
+    meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
+    add(SensorNode.STATS_RELATIONSHIP, meanValue)
+
+
+    super.init()
   }
 
   override def setProperty(propertyName: String, propertyType: Byte, propertyValue: Any) {
     val state: NodeState = _resolver.resolveState(this, true)
-    if ("value" == propertyName && state.time > 0L) {
-      if (state.getFromKey(SensorNode.UPDATE_RELATIONSHIP) == null) {
-        val profileValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
-        profileValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
-        profileValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
-        add(SensorNode.UPDATE_RELATIONSHIP, profileValue)
-      }
-      if (state.getFromKey(SensorNode.STATS_RELATIONSHIP) == null) {
-        val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
-        meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
-        meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
-        add(SensorNode.STATS_RELATIONSHIP, meanValue)
-      }
-      rel(SensorNode.UPDATE_RELATIONSHIP, new Callback[Array[Node]]() {
-        def on(result: Array[Node]) {
-          System.out.println("Learning SET at " + time)
-          val profiler: GaussianSlotProfilingNode = result(0).asInstanceOf[GaussianSlotProfilingNode]
-          System.out.println("Learning SET profiler at " + profiler.time)
-          profiler.learnArray(Array[Double](1.0))
-          for (v <- profiler.getSum) {
-            print(v + " ")
-          }
-          println()
+
+    if ("value" == propertyName && state.time() > 0L) {
+
+      rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+        override def on(a: Array[Node]): Unit = {
+          val _node = a(0).asInstanceOf[CompressedSensorNode]
+          _node.learn(propertyValue.asInstanceOf[Double], new Callback[Boolean] {
+            override def on(a: Boolean): Unit = {
+              println(s"Result $a")
+            }
+          })
         }
       })
+
       rel(SensorNode.STATS_RELATIONSHIP, new Callback[Array[Node]]() {
         def on(result: Array[Node]) {
           val profiler: GaussianSlotProfilingNode = result(0).asInstanceOf[GaussianSlotProfilingNode]
           profiler.learnArray(Array[Double](propertyValue.asInstanceOf[Double]))
         }
       })
+
     }
+
     super.setProperty(propertyName, propertyType, propertyValue)
   }
 
@@ -103,23 +120,15 @@ case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, c
 }
 
 object SensorNode {
-  val USE_RELATIONSHIP = "USE"
-  val UPDATE_RELATIONSHIP = "UPDATE"
-  val STATS_RELATIONSHIP = "STATS"
-  val PRED_RELATIONSHIP = "PRED"
 
+  val ACTIVITY_RELATIONSHIP = "ACTIVITY"
+  val STATS_RELATIONSHIP = "STATS"
+  val COMPRESSED_RELATIONSHIP = "COMPRESSED"
   val SLOTS: Int = 24
   val PERIOD: Long = 24 * 3600
 
   val NAME: String = "SensorNode"
 
-  sealed class SensorNodeFactory extends NodeFactory {
-    def name: String = "SensorNode"
-
-    def create(world: Long, time: Long, id: Long, graph: Graph, initialResolution: Array[Long]): Node = {
-      new SensorNode(world, time, id, graph, initialResolution)
-    }
-  }
 
 }
 

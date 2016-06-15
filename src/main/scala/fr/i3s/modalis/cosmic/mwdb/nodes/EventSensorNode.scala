@@ -27,18 +27,17 @@
 package fr.i3s.modalis.cosmic.mwdb.nodes
 
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
-import org.mwg.plugin.NodeFactory
+import org.mwg.plugin.{NodeFactory, NodeState}
 import org.mwg.{Callback, Graph, Node}
 
 /**
-  * Created by Cyril Cecchinel - I3S Laboratory on 14/06/2016.
+  * Created by Cyril Cecchinel - I3S Laboratory on 15/06/2016.
   */
-class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
+class EventSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
   extends SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long]) {
 
-
-  override def get(propertyName: String): AnyRef = {
-    val state = _resolver.resolveState(this, true)
+  override def setProperty(propertyName: String, propertyType: Byte, propertyValue: Any): Unit = {
+    val state: NodeState = _resolver.resolveState(this, true)
 
     if ("value".equals(propertyName)) {
       if (state.getFromKey(SensorNode.ACTIVITY_RELATIONSHIP) == null) {
@@ -53,7 +52,8 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
       })
     }
 
-    super.get(propertyName)
+
+    super.setProperty(propertyName, propertyType, propertyValue)
   }
 
   /**
@@ -65,23 +65,21 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
     val node = graph().newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
     node.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
     node.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
-    node.set("On", "USAGES")
+    node.set("On", "UPDATES")
     node
   }
 }
 
-object PeriodicSensorNode extends {
-  val NAME: String = "PeriodicSensorNode"
 
-  sealed class PeriodicSensorNodeFactory extends NodeFactory {
+object EventSensorNode extends {
+  val NAME: String = "EventSensorNode"
+
+  sealed class EventSensorNodeFactory extends NodeFactory {
     def name: String = NAME
 
     def create(world: Long, time: Long, id: Long, graph: Graph, initialResolution: Array[Long]): Node = {
-      new PeriodicSensorNode(world, time, id, graph, initialResolution)
+      new EventSensorNode(world, time, id, graph, initialResolution)
     }
   }
 
 }
-
-
-

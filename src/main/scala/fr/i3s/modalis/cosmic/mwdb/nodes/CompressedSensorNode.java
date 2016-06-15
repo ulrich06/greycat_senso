@@ -36,21 +36,20 @@ import org.mwg.plugin.NodeFactory;
  * SmartCampus node
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
-public class InterpolatedSensorNode extends PolynomialNode {
-    final static double PRECISION = 3.0;
+public class CompressedSensorNode extends PolynomialNode {
+    final static double PRECISION = 2.0;
     final static String NAME = "InterpolatedSensorNode";
 
-    private InterpolatedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
+    private CompressedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
-
 
     @Override
     public void init() {
         setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
     }
 
-    public static class InterpolatedSensorNodeFactory implements NodeFactory {
+    public static class CompressedSensorNodeFactory implements NodeFactory {
         @Override
         public String name() {
             return NAME;
@@ -58,7 +57,7 @@ public class InterpolatedSensorNode extends PolynomialNode {
 
         @Override
         public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-            return new InterpolatedSensorNode(world, time, id, graph, initialResolution);
+            return new CompressedSensorNode(world, time, id, graph, initialResolution);
         }
     }
 }

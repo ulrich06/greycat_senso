@@ -53,3 +53,7 @@ class DoubleArrayReturn extends Return {
 class ArraySensorDataReturn extends Return {
   val value = new Field(Array[SensorData]())
 }
+
+class DoubleReturn extends Return {
+  val value = new Field(0.0)
+}
