@@ -44,9 +44,9 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
       override def on(a: Array[Node]): Unit = nbPointsCompressed = a(0).asInstanceOf[CompressedSensorNode].getNbPoints
     })
 
-    if (nbPointsCompressed != 0)
-      getNbPoints / nbPointsCompressed
-    else 0
+    if (getNbPoints != 0)
+      nbPointsCompressed.toDouble / getNbPoints
+    else 0.0
   }
 
   def getNbPoints = {
