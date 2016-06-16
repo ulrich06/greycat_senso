@@ -32,7 +32,7 @@ import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.returns.{ArrayLongReturn, ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
 import org.mwg.Constants
 import spray.http.MediaTypes._
 import spray.httpx.SprayJsonSupport
@@ -79,6 +79,11 @@ trait SensorsRouting extends HttpService with LazyLogging {
         complete(returnObject.value.value.toString())
       } ~
       respondWithMediaType(`application/json`) {
+        path("sensors" / Segment / "compression" / "inflexion") { sensor =>
+          val returnObject = new ArrayLongReturn
+          DataStorage.getInflexions(sensor, returnObject)
+          complete(returnObject.value.value.toJson.toString())
+        } ~
         path("sensors" / Segment / "stats") { sensor =>
           complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
         } ~ path("sensors" / Segment / "activity") { sensor =>

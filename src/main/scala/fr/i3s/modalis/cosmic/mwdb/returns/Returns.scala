@@ -57,3 +57,7 @@ class ArraySensorDataReturn extends Return {
 class DoubleReturn extends Return {
   val value = new Field(0.0)
 }
+
+class ArrayLongReturn extends Return {
+  val value = new Field(Array[Long]())
+}

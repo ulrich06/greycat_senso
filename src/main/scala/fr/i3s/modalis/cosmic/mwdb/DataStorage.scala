@@ -31,7 +31,7 @@ import java.lang.{Boolean, Double}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
 import fr.i3s.modalis.cosmic.mwdb.nodes.{CompressedSensorNode, SensorNode}
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.returns.{ArrayLongReturn, ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
 import org.mwg.task._
@@ -64,6 +64,18 @@ object DataStorage {
 
   def getGraph = if (isInitialized) _graph else throw new RuntimeException("Data storage not yet initialized")
 
+  def getInflexions(sensor: String, returnObject: ArrayLongReturn) = {
+    _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
+      override def eval(taskContext: TaskContext): Unit = taskContext.result().asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => node.rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+          override def on(a: Array[Node]): Unit = {
+            returnObject.value.value = a(0).asInstanceOf[CompressedSensorNode].getInflexions
+          }
+        })
+        case None => ()
+      }
+    }).execute()
+  }
 
   def getCompressionRate(sensor: String, returnObject: DoubleReturn) = {
     _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
