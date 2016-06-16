@@ -70,7 +70,7 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
   }
 }
 
-object PeriodicSensorNode extends {
+object PeriodicSensorNode {
   val NAME: String = "PeriodicSensorNode"
 
   sealed class PeriodicSensorNodeFactory extends NodeFactory {

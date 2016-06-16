@@ -71,7 +71,7 @@ class EventSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, c
 }
 
 
-object EventSensorNode extends {
+object EventSensorNode {
   val NAME: String = "EventSensorNode"
 
   sealed class EventSensorNodeFactory extends NodeFactory {
