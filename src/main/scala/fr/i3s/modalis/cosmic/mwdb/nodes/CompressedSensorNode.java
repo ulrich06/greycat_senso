@@ -37,7 +37,8 @@ import org.mwg.plugin.NodeFactory;
 public class CompressedSensorNode extends PolynomialNode {
     final static double PRECISION = 2.0;
     final static String NAME = "InterpolatedSensorNode";
-
+    private int nbPoints;
+    private long[] inflexions;
     private CompressedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
@@ -47,16 +48,25 @@ public class CompressedSensorNode extends PolynomialNode {
         setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
     }
 
-    public void getInflexions() {
+    public int getNbPoints() {
         this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
             @Override
             public void on(long[] longs) {
-                for (long _long : longs) {
-                    System.out.print(_long + " ");
-                }
-                System.out.println();
+                nbPoints = longs.length;
             }
         });
+        System.out.println("Compressed: " + nbPoints);
+        return this.nbPoints;
+    }
+
+    public long[] getInflexions() {
+        this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback<long[]>() {
+            @Override
+            public void on(long[] longs) {
+                inflexions = longs;
+            }
+        });
+        return inflexions;
     }
 
     public static class CompressedSensorNodeFactory implements NodeFactory {

@@ -38,34 +38,28 @@ import org.mwg.{Callback, Constants, Graph, Node}
 abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
   extends AbstractNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long]) {
 
-  def getDataCompressionRatio = getNbPoints / getNbPointsCompressed
+  def getDataCompressionRatio = {
+    var nbPointsCompressed: Int = 1
+    rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+      override def on(a: Array[Node]): Unit = nbPointsCompressed = a(0).asInstanceOf[CompressedSensorNode].getNbPoints
+    })
+
+    if (nbPointsCompressed != 0)
+      getNbPoints / nbPointsCompressed
+    else 0
+  }
 
   def getNbPoints = {
-    println(s"Time getNb: ${time()}")
     var result: Int = 0
     this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]]() {
       def on(longs: Array[Long]) {
         result = longs.length
       }
     })
-    println(s"Total not compressed: $result")
+    println(s"Non compressed: $result")
     result
   }
 
-  def getNbPointsCompressed = {
-    var result: Int = 0
-    println(s"Time getNbCompressed: ${time()}")
-    rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
-      override def on(a: Array[Node]): Unit = {
-        val _node = a(0).asInstanceOf[CompressedSensorNode]
-        _node.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]] {
-          override def on(a: Array[Long]): Unit = result = a.length
-        })
-      }
-    })
-    println(s"Total compressed: $result")
-    result
-  }
 
   /**
     * Build the activity node related to the sensor
