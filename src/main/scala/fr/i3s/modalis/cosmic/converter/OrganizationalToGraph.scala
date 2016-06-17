@@ -69,7 +69,9 @@ object OrganizationalToGraph extends LazyLogging {
                 logger.debug(s"Created sensor node ${sensorNode.get("name")}")
 
               }
-          }).fromIndex("types", s"name = ${s.observes.name}")
+          }).execute()
+
+        graph.newTask().fromIndex("types", s"name = ${s.observes.name}")
           .`then`(new Action {
             override def eval(context: TaskContext): Unit = {
               context.result().asInstanceOf[Array[Node]](0).add("sensors", sensorNode)
@@ -156,5 +158,3 @@ object OrganizationalToGraph extends LazyLogging {
     graph
   }
 }
-
-
