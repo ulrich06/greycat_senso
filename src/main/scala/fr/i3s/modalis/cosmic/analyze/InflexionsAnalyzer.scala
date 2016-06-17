@@ -35,7 +35,7 @@ import scala.io.Source
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
 object InflexionsAnalyzer {
-  val ZONES = 3
+  val ZONES = 5
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
 
@@ -57,12 +57,22 @@ object InflexionsAnalyzer {
         // I cut the table in n=ZONES parts
         val cutResult = cut(groupedByInflexions, ZONES).toList
         for (i <- cutResult.indices) {
-          println(s"Zone $i: ${cutResult(i).flatMap(_._2.map(_._1)).sorted}")
+          val result = cutResult(i).flatMap(_._2.map(_._1)).sorted
+          val mean = computeMeanPeriod(result.toList, dateTable)
+          val period = 3600 / mean
+          println(s"Zone $i: $result (mean: ${mean} values per h - period=$period seconds) ")
         }
       } else throw new IllegalArgumentException(s"ZONES argument is too high ($ZONES > ${groupedByInflexions.size})")
 
     } else throw new IllegalArgumentException(s"$sensor can not be parsed")
 
+  }
+
+  def computeMeanPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
+    val list = inflexions.filter(v => zone contains v._1).map {
+      _._2
+    }
+    list.sum / list.length
   }
 
   def cut[A](xs: Seq[A], n: Int) = {
@@ -75,5 +85,5 @@ object InflexionsAnalyzer {
 }
 
 object RunAnalyzer extends App {
-  InflexionsAnalyzer("TEMP_443V")
+  InflexionsAnalyzer("MW_power")
 }
