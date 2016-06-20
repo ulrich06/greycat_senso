@@ -69,6 +69,16 @@ public class CompressedSensorNode extends PolynomialNode {
         return inflexions;
     }
 
+    public long[] getInflexions(Long tbegin, Long tend) {
+        this.timepoints(tbegin, tend, new Callback<long[]>() {
+            @Override
+            public void on(long[] longs) {
+                inflexions = longs;
+            }
+        });
+        return inflexions;
+    }
+
     public static class CompressedSensorNodeFactory implements NodeFactory {
         @Override
         public String name() {

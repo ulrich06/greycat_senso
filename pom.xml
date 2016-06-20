@@ -37,6 +37,16 @@
         </dependency>
         <dependency>
             <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>alljs</artifactId>
+            <version>${mwdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
+            <artifactId>websocket</artifactId>
+            <version>${mwdb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kevoree.mwg.plugins</groupId>
             <artifactId>leveldb</artifactId>
             <version>${mwdb.version}</version>
         </dependency>

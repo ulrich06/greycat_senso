@@ -77,6 +77,20 @@ object DataStorage {
     }).execute()
   }
 
+  def getInflexions(sensor: String, timestampB: Long, timestampE: Long, returnObject: ArrayLongReturn) = {
+    _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
+      override def eval(taskContext: TaskContext): Unit = taskContext.result().asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => node.rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+          override def on(a: Array[Node]): Unit = {
+            returnObject.value.value = a(0).asInstanceOf[CompressedSensorNode].getInflexions(timestampB, timestampE)
+          }
+        })
+        case None => ()
+      }
+    }).execute()
+  }
+
+
   def getCompressionRate(sensor: String, returnObject: DoubleReturn) = {
     _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
       override def eval(taskContext: TaskContext): Unit = taskContext.result().asInstanceOf[Array[Node]].headOption match {

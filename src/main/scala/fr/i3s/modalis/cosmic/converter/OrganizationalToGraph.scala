@@ -62,7 +62,6 @@ object OrganizationalToGraph extends LazyLogging {
                 sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
                 sensorNode.setProperty("type", Type.STRING, s.observes.name)
 
-
                 parent.add("sensor", sensorNode)
                 graph.index("nodes", sensorNode, "name", null)
                 graph.index("sensors", sensorNode, "name", null)

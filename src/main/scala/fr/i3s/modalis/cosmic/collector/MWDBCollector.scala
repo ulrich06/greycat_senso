@@ -34,6 +34,7 @@ import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
 import org.mwg.Constants
+import spray.http.HttpHeaders.RawHeader
 import spray.http.MediaTypes._
 import spray.httpx.SprayJsonSupport
 import spray.json.{DefaultJsonProtocol, _}
@@ -74,11 +75,13 @@ trait SettingsRouting extends HttpService with LazyLogging {
 
     get {
       path("settings" / "sensors") {
-        respondWithMediaType(`application/json`) {
-          complete {
-            val arrayReturn = new ArrayStringReturn
-            arrayReturn.value.value = scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(sensors)/get(name)").mkString.replace("[", "").replace("]", "").replace("\n", "").split(",")
-            arrayReturn.value.value.toJson.toString()
+        respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+          respondWithMediaType(`application/json`) {
+            complete {
+              val arrayReturn = new ArrayStringReturn
+              arrayReturn.value.value = scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(sensors)/get(name)").mkString.replace("[", "").replace("]", "").replace("\n", "").split(",")
+              arrayReturn.value.value.toJson.toString()
+            }
           }
         }
       }
@@ -90,79 +93,104 @@ trait SensorsRouting extends HttpService with LazyLogging {
   val sensors = {
     import SensorDataJsonSupport._
     get {
-      path("sensors" / Segment / "compression") { sensor =>
-        val returnObject = new DoubleReturn
-        DataStorage.getCompressionRate(sensor, returnObject)
-        complete(returnObject.value.value.toString())
-      } ~
-      respondWithMediaType(`application/json`) {
-
-        path("sensors" / Segment / "compression" / "inflexion") { sensor =>
-          val returnObject = new ArrayLongReturn
-          DataStorage.getInflexions(sensor, returnObject)
-          complete(returnObject.value.value.toJson.toString())
+      respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
+        path("sensors" / Segment / "compression") { sensor =>
+          val returnObject = new DoubleReturn
+          DataStorage.getCompressionRate(sensor, returnObject)
+          complete(returnObject.value.value.toString())
         } ~
-        path("sensors" / Segment / "stats") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
-        } ~ path("sensors" / Segment / "activity") { sensor =>
-          complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.ACTIVITY_RELATIONSHIP})").mkString)
-        } ~ path("sensors" / Segment / "data" / Segment) { (sensor, date) =>
-          if ("last".equals(date)) {
-            val timestamp = System.currentTimeMillis() / 1000
-            logger.debug(s"Retrieve $sensor @ $timestamp")
-            val returnObject = new SensorDataReturn
-            DataStorage.get(sensor, timestamp, returnObject)
-            complete(returnObject.value.value.toJson.toString())
-          } else {
-            var timestamp: Long = 0
-            try {
-              timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
-            }
-            catch {
-              case e: ParseException =>
+          respondWithMediaType(`application/json`) {
 
-                /** Try long input **/
-                try {
-                  timestamp = date.toLong
-                }
-                catch {
-                  case e: NumberFormatException => complete(s"Error while parsing date $date")
-                }
-            }
-            logger.debug(s"Retrieve $sensor @ $timestamp")
-            val returnObject = new SensorDataReturn
-            DataStorage.get(sensor, timestamp, returnObject)
-            complete(returnObject.value.value.toJson.toString())
-          }
-        } ~ path("sensors" / Segment / "data" / Segment / Segment) { (sensor, tbegin, tend) =>
-          var timestampB: Long = 0
-          var timestampE: Long = 0
-          try {
-            timestampB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tbegin).getTime / 1000
-            timestampE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tend).getTime / 1000
-          }
-          catch {
-            case e: ParseException =>
-
-              /** Try long input **/
+            path("sensors" / Segment / "compression" / "inflexion") { sensor =>
+              val returnObject = new ArrayLongReturn
+              DataStorage.getInflexions(sensor, returnObject)
+              complete(returnObject.value.value.toJson.toString())
+            } ~ path("sensors" / Segment / "compression" / "inflexion" / Segment / Segment) { (sensor, tbegin, tend) =>
+              var timestampB: Long = 0
+              var timestampE: Long = 0
               try {
-                timestampB = tbegin.toLong
-                timestampE = tend.toLong
+                timestampB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tbegin).getTime / 1000
+                timestampE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tend).getTime / 1000
               }
               catch {
-                case e: NumberFormatException => complete(s"Error while parsing date $tbegin / $tend")
-              }
-          }
-          logger.debug(s"Retrieve $sensor between $timestampB/$timestampE")
-          val returnObject = new ArraySensorDataReturn
-          DataStorage.get(sensor, timestampB, timestampE, returnObject)
-          complete(returnObject.value.value.toJson.toString())
+                case e: ParseException =>
 
-        } ~ path("sensors" / Segment / "data") { sensor =>
-          val returnObject = new ArraySensorDataReturn
-          DataStorage.get(sensor, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, returnObject)
-          complete(returnObject.value.value.toJson.toString())
-        }
+                  /** Try long input **/
+                  try {
+                    timestampB = tbegin.toLong
+                    timestampE = tend.toLong
+                  }
+                  catch {
+                    case e: NumberFormatException => complete(s"Error while parsing date $tbegin / $tend")
+                  }
+              }
+              logger.debug(s"Retrieve inflexions ($sensor) between $timestampB/$timestampE")
+              val returnObject = new ArrayLongReturn
+              DataStorage.getInflexions(sensor, timestampB, timestampE, returnObject)
+              complete(returnObject.value.value.toJson.toString())
+
+            } ~ path("sensors" / Segment / "stats") { sensor =>
+              complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
+            } ~ path("sensors" / Segment / "activity") { sensor =>
+              complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.ACTIVITY_RELATIONSHIP})").mkString)
+            } ~ path("sensors" / Segment / "data" / Segment) { (sensor, date) =>
+              if ("last".equals(date)) {
+                val timestamp = System.currentTimeMillis() / 1000
+                logger.debug(s"Retrieve $sensor @ $timestamp")
+                val returnObject = new SensorDataReturn
+                DataStorage.get(sensor, timestamp, returnObject)
+                complete(returnObject.value.value.toJson.toString())
+              } else {
+                var timestamp: Long = 0
+                try {
+                  timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date).getTime / 1000
+                }
+                catch {
+                  case e: ParseException =>
+
+                    /** Try long input **/
+                    try {
+                      timestamp = date.toLong
+                    }
+                    catch {
+                      case e: NumberFormatException => complete(s"Error while parsing date $date")
+                    }
+                }
+                logger.debug(s"Retrieve $sensor @ $timestamp")
+                val returnObject = new SensorDataReturn
+                DataStorage.get(sensor, timestamp, returnObject)
+                complete(returnObject.value.value.toJson.toString())
+              }
+            } ~ path("sensors" / Segment / "data" / Segment / Segment) { (sensor, tbegin, tend) =>
+              var timestampB: Long = 0
+              var timestampE: Long = 0
+              try {
+                timestampB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tbegin).getTime / 1000
+                timestampE = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tend).getTime / 1000
+              }
+              catch {
+                case e: ParseException =>
+
+                  /** Try long input **/
+                  try {
+                    timestampB = tbegin.toLong
+                    timestampE = tend.toLong
+                  }
+                  catch {
+                    case e: NumberFormatException => complete(s"Error while parsing date $tbegin / $tend")
+                  }
+              }
+              logger.debug(s"Retrieve $sensor between $timestampB/$timestampE")
+              val returnObject = new ArraySensorDataReturn
+              DataStorage.get(sensor, timestampB, timestampE, returnObject)
+              complete(returnObject.value.value.toJson.toString())
+
+            } ~ path("sensors" / Segment / "data") { sensor =>
+              val returnObject = new ArraySensorDataReturn
+              DataStorage.get(sensor, Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, returnObject)
+              complete(returnObject.value.value.toJson.toString())
+            }
+          }
       }
     }
   }

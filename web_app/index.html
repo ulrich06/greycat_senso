@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--
+  ~ /*************************************************************************
+  ~                  Université de Nice Sophia-Antipolis (UNS) - 
+  ~                  Centre National de la Recherche Scientifique (CNRS)
+  ~                  Copyright © 2016 UNS, CNRS
+  ~  
+  ~   This library is free software; you can redistribute it and/or
+  ~   modify it under the terms of the GNU Lesser General Public
+  ~   License as published by the Free Software Foundation; either
+  ~   version 3 of the License, or (at your option) any later version.
+  ~
+  ~   This library is distributed in the hope that it will be useful,
+  ~   but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  ~   Lesser General Public License for more details.
+  ~
+  ~   You should have received a copy of the GNU Lesser General Public
+  ~   License along with this library; if not, write to the Free Software
+  ~   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  ~
+  ~
+  ~
+  ~     Author: Cyril Cecchinel – Laboratoire I3S – cecchine@i3s.unice.fr 
+  ~ *************************************************************************/
+  -->
+
+<html lang="en">
+<style>
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
+</style>
+<head>
+    <script src="libs/mwg.js"></script>
+    <script src="libs/mwg.ml.js"></script>
+    <script src="libs/mwg.ws.js"></script>
+    <script src="functions.js"></script>
+    <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+    <script src="https://www.amcharts.com/lib/3/serial.js"></script>
+    <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+
+</head>
+
+<body>
+<h1>Super monitoring dashboard</h1>
+<form id="settings">
+    <input type="datetime" name="begin" id="begin" placeholder="Begin">
+    <input type="datetime" name="end" id="end" placeholder="End">
+    <select id="sensorsList"></select>
+    <input type="button" id="values" name="Display values" onclick="submitFormValues()">
+    <input type="button" id="inflexions" name="Display values" onclick="submitFormInflexions()">
+</form>
+<div id="chartdiv"></div>
+<script>
+    var select = document.getElementById("sensorsList");
+    var sensors = getSensors();
+    for (var i = 0; i < sensors.length; i++) {
+        var opt = sensors[i];
+        var el = document.createElement("option");
+        el.textContent = opt;
+        el.value = opt;
+        select.appendChild(el);
+    }
+</script>
+</body>
+</html>
