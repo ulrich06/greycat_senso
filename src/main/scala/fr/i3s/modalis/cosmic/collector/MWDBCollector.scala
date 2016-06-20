@@ -32,7 +32,7 @@ import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArrayLongReturn, ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.returns._
 import org.mwg.Constants
 import spray.http.MediaTypes._
 import spray.httpx.SprayJsonSupport
@@ -44,10 +44,10 @@ import spray.routing.RejectionHandler.Default
   * Actor representing a SmartCampus collector
   */
 
-class MWDBCollectorActor extends Actor with SensorsRouting with CollectRouting {
+class MWDBCollectorActor extends Actor with SensorsRouting with CollectRouting with SettingsRouting {
   implicit val system = context.system
 
-  override def receive: Receive = runRoute(sensors ~ collect)
+  override def receive: Receive = runRoute(sensors ~ collect ~ settings)
 
   override implicit def actorRefFactory: ActorRefFactory = context
 }
@@ -68,6 +68,23 @@ object SensorDataJsonSupport extends DefaultJsonProtocol with SprayJsonSupport {
   implicit val format = jsonFormat3(SensorData)
 }
 
+trait SettingsRouting extends HttpService with LazyLogging {
+  val settings = {
+    import SensorDataJsonSupport._
+
+    get {
+      path("settings" / "sensors") {
+        respondWithMediaType(`application/json`) {
+          complete {
+            val arrayReturn = new ArrayStringReturn
+            arrayReturn.value.value = scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(sensors)/get(name)").mkString.replace("[", "").replace("]", "").replace("\n", "").split(",")
+            arrayReturn.value.value.toJson.toString()
+          }
+        }
+      }
+    }
+  }
+}
 
 trait SensorsRouting extends HttpService with LazyLogging {
   val sensors = {
@@ -79,6 +96,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
         complete(returnObject.value.value.toString())
       } ~
       respondWithMediaType(`application/json`) {
+
         path("sensors" / Segment / "compression" / "inflexion") { sensor =>
           val returnObject = new ArrayLongReturn
           DataStorage.getInflexions(sensor, returnObject)

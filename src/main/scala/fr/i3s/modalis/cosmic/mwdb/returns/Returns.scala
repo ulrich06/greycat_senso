@@ -61,3 +61,7 @@ class DoubleReturn extends Return {
 class ArrayLongReturn extends Return {
   val value = new Field(Array[Long]())
 }
+
+class ArrayStringReturn extends Return {
+  val value = new Field(Array[String]())
+}
