@@ -40,7 +40,7 @@ function submitFormValues() {
     var tbegin = new Date(document.getElementById("begin").value).getTime() / 1000;
     var tend = new Date(document.getElementById("end").value).getTime() / 1000;
 
-    printData(getValues(name, tbegin, tend));
+    printData(getValues(name, tbegin, tend), "chartdiv1");
 }
 
 function submitFormInflexions() {
@@ -48,7 +48,12 @@ function submitFormInflexions() {
     var tbegin = new Date(document.getElementById("begin").value).getTime() / 1000;
     var tend = new Date(document.getElementById("end").value).getTime() / 1000;
 
-    printData(getInflexionsValues(name, tbegin, tend));
+    printData(getInflexionsValues(name, tbegin, tend), "chartdiv2");
+}
+
+function submitFormAll() {
+    submitFormValues();
+    submitFormInflexions();
 }
 
 function getValues(name, tbegin, tend) {
@@ -84,9 +89,9 @@ function getInflexionsValues(name, tbegin, tend) {
     return result;
 }
 
-
-function printData(data) {
-    var chart = AmCharts.makeChart("chartdiv", {
+var charts = [];
+function printData(data, target) {
+    var chart = AmCharts.makeChart(target, {
         "type": "serial",
         "theme": "light",
         "marginTop": 0,
@@ -94,29 +99,12 @@ function printData(data) {
         "dataDateFormat": "YYYY-MM-DD HH:MM:SS",
         "valueAxes": [{
             "id": "v1",
-            "axisAlpha": 0,
-            "position": "left",
-            "ignoreAxisWidth": true
+            "title": "Values",
+            "position": "left"
         }],
-        "balloon": {
-            "borderThickness": 1,
-            "shadowAlpha": 0
-        },
         "graphs": [{
             "id": "g1",
-            "balloon": {
-                "drop": true,
-                "adjustBorderColor": false,
-                "color": "#ffffff"
-            },
-            "bullet": "round",
-            "bulletBorderAlpha": 1,
-            "bulletColor": "#FFFFFF",
-            "bulletSize": 5,
-            "hideBulletsCount": 50,
-            "lineThickness": 2,
-            "title": "red line",
-            "useLineColorForBulletBorder": true,
+            "valueAxis": "v1",
             "valueField": "v",
             "balloonText": "<span style='font-size:18px;'>[[v]]</span>"
         }],
@@ -170,6 +158,10 @@ function printData(data) {
     function zoomChart() {
         chart.zoomToIndexes(Math.round(chart.dataProvider.length * 0.4), Math.round(chart.dataProvider.length * 0.55));
     }
+
+    charts.push(chart);
+
+
 
 
 }

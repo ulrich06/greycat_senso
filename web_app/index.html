@@ -27,7 +27,7 @@
 
 <html lang="en">
 <style>
-    #chartdiv {
+    .chartdiv {
         width: 100%;
         height: 500px;
     }
@@ -51,8 +51,10 @@
     <select id="sensorsList"></select>
     <input type="button" id="values" name="Display values" onclick="submitFormValues()">
     <input type="button" id="inflexions" name="Display values" onclick="submitFormInflexions()">
+    <input type="button" id="all" name="Display values" onclick="submitFormAll()">
 </form>
-<div id="chartdiv"></div>
+<div id="chartdiv1" class="chartdiv"></div>
+<div id="chartdiv2" class="chartdiv"></div>
 <script>
     var select = document.getElementById("sensorsList");
     var sensors = getSensors();
@@ -62,6 +64,23 @@
         el.textContent = opt;
         el.value = opt;
         select.appendChild(el);
+    }
+
+    var charts = [];
+    charts.push(AmCharts.makeChart("chartdiv", chartConfig));
+    charts.push(AmCharts.makeChart("chartdiv2", chartConfig2));
+
+    for (x in charts) {
+        charts[x].addListener("changed", syncCursor);
+    }
+
+    function syncCursor(event) {
+        if (!isNaN(event.index)) {
+            for (x in charts) {
+                var date = charts[x].chartData[event.index].time + 1000 * 60 * 60 * 12;
+                charts[x].chartCursor.showCursorAt(date);
+            }
+        }
     }
 </script>
 </body>
