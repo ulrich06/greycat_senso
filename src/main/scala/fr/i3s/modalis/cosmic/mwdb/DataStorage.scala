@@ -184,7 +184,7 @@ object DataStorage {
         override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]].headOption match {
           case Some(node) => node.jump(date, new Callback[Node] {
             override def on(result: Node): Unit = {
-              result.rel("PRED", new Callback[Array[Node]] {
+              result.rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
                 override def on(a: Array[Node]): Unit = a(0).asInstanceOf[CompressedSensorNode].extrapolate(new Callback[Double] {
                   override def on(a: Double): Unit = {
                     returnObject.value.value = SensorData(result.get("name").toString, a.toString, result.time().toString)

@@ -35,7 +35,7 @@ import org.mwg.plugin.NodeFactory;
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
 public class CompressedSensorNode extends PolynomialNode {
-    final static double PRECISION = 2.0;
+    final static double PRECISION = 2;
     final static String NAME = "InterpolatedSensorNode";
     private int nbPoints;
     private long[] inflexions;

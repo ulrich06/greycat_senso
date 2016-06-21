@@ -77,19 +77,22 @@ function getInflexionsValues(name, tbegin, tend) {
     for (var i = 0; i < answer.length; i++) {
 
         var singleValue = new XMLHttpRequest("GET");
-        singleValue.open("GET", "http://localhost:11000/sensors/" + name + "/data/" + answer[i], false);
+        singleValue.open("GET", "http://localhost:11000/sensors/" + name + "/compression/inflexion/data/" + answer[i], false);
         singleValue.send(null);
 
         var valueAnswer = JSON.parse(singleValue.responseText);
         console.log(answer[i]);
-        var resObject = {'n': valueAnswer.n, 'v': valueAnswer.v, 't': new Date(answer[i] * 1000)};
-        result.push(resObject);
+        if (valueAnswer.v < 10000) {
+            if (valueAnswer.v > -100) {
+                var resObject = {'n': valueAnswer.n, 'v': valueAnswer.v, 't': new Date(answer[i] * 1000)};
+                result.push(resObject);
+            }
+        }
     }
     console.log(result);
     return result;
 }
 
-var charts = [];
 function printData(data, target) {
     var chart = AmCharts.makeChart(target, {
         "type": "serial",
@@ -158,10 +161,4 @@ function printData(data, target) {
     function zoomChart() {
         chart.zoomToIndexes(Math.round(chart.dataProvider.length * 0.4), Math.round(chart.dataProvider.length * 0.55));
     }
-
-    charts.push(chart);
-
-
-
-
 }
