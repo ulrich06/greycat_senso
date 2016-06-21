@@ -24,18 +24,25 @@
  * ***********************************************************************
  */
 
+function toDataSet(arrayTotal) {
+    var result = [];
+    for (var i = 0; i < arrayTotal.length - 1; i++) {
+        result.push({time: i, value: arrayTotal[i]})
+    }
+    return result;
+}
 
 function getStatsValues(sensor) {
-    function toDataSet(arrayTotal) {
-        var result = [];
-        for (var i = 0; i < arrayTotal.length - 1; i++) {
-            result.push({time: i, value: arrayTotal[i]})
-        }
-        return result;
-    }
-
     var call = new XMLHttpRequest();
     call.open("GET", "http://localhost:11000/sensors/" + sensor + "/stats", false);
+    call.send(null);
+    var answer = JSON.parse(call.responseText);
+    return toDataSet(answer[0]._total);
+}
+
+function getActivityValues(sensor) {
+    var call = new XMLHttpRequest();
+    call.open("GET", "http://localhost:11000/sensors/" + sensor + "/activity", false);
     call.send(null);
     var answer = JSON.parse(call.responseText);
     return toDataSet(answer[0]._total);
@@ -45,6 +52,13 @@ function submitFormStats() {
     var name = document.getElementById("sensorsList").value;
 
     printStatsData(getStatsValues(name), "chartdiv3");
+}
+
+
+function submitFormActivity() {
+    var name = document.getElementById("sensorsList").value;
+
+    printStatsData(getActivityValues(name), "chartdiv4");
 }
 
 function printStatsData(datasset, target) {

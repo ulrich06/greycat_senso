@@ -52,14 +52,16 @@
     <input type="button" id="inflexions" value="Inflexions" onclick="submitFormInflexions()">
     <input type="button" id="all" value="Values/Inflexions" onclick="submitFormAll()">
     <input type="button" id="stats" value="Stats" onclick="submitFormStats()">
+    <input type="button" id="activity" value="Activity" onclick="submitFormActivity()">
 </form>
 
 <div id="chartdiv1" class="chartdiv"></div>
 <div id="chartdiv2" class="chartdiv"></div>
 <div id="chartdiv3" class="chartdiv"></div>
+<div id="chartdiv4" class="chartdiv"></div>
 <script>
     var select = document.getElementById("sensorsList");
-    var sensors = getSensors();
+    var sensors = getSensors().sort();
     for (var i = 0; i < sensors.length; i++) {
         var opt = sensors[i];
         var el = document.createElement("option");
