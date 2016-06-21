@@ -33,10 +33,9 @@
     }
 </style>
 <head>
-    <script src="libs/mwg.js"></script>
-    <script src="libs/mwg.ml.js"></script>
-    <script src="libs/mwg.ws.js"></script>
-    <script src="functions.js"></script>
+
+    <script src="functions_values.js"></script>
+    <script src="functions_stats.js"></script>
     <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
     <script src="https://www.amcharts.com/lib/3/serial.js"></script>
     <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
@@ -49,12 +48,15 @@
     <input type="datetime" name="begin" id="begin" placeholder="Begin">
     <input type="datetime" name="end" id="end" placeholder="End">
     <select id="sensorsList"></select>
-    <input type="button" id="values" name="Display values" onclick="submitFormValues()">
-    <input type="button" id="inflexions" name="Display values" onclick="submitFormInflexions()">
-    <input type="button" id="all" name="Display values" onclick="submitFormAll()">
+    <input type="button" id="values" value="Values" onclick="submitFormValues()">
+    <input type="button" id="inflexions" value="Inflexions" onclick="submitFormInflexions()">
+    <input type="button" id="all" value="Values/Inflexions" onclick="submitFormAll()">
+    <input type="button" id="stats" value="Stats" onclick="submitFormStats()">
 </form>
+
 <div id="chartdiv1" class="chartdiv"></div>
 <div id="chartdiv2" class="chartdiv"></div>
+<div id="chartdiv3" class="chartdiv"></div>
 <script>
     var select = document.getElementById("sensorsList");
     var sensors = getSensors();
@@ -66,22 +68,6 @@
         select.appendChild(el);
     }
 
-    var charts = [];
-    charts.push(AmCharts.makeChart("chartdiv", chartConfig));
-    charts.push(AmCharts.makeChart("chartdiv2", chartConfig2));
-
-    for (x in charts) {
-        charts[x].addListener("changed", syncCursor);
-    }
-
-    function syncCursor(event) {
-        if (!isNaN(event.index)) {
-            for (x in charts) {
-                var date = charts[x].chartData[event.index].time + 1000 * 60 * 60 * 12;
-                charts[x].chartCursor.showCursorAt(date);
-            }
-        }
-    }
 </script>
 </body>
 </html>
