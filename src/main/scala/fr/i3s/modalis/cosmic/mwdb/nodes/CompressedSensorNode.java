@@ -26,7 +26,10 @@
 
 package fr.i3s.modalis.cosmic.mwdb.nodes;
 
-import org.mwg.*;
+import org.mwg.Callback;
+import org.mwg.Constants;
+import org.mwg.Graph;
+import org.mwg.Node;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
 import org.mwg.plugin.NodeFactory;
 
@@ -35,17 +38,12 @@ import org.mwg.plugin.NodeFactory;
  * Created by Cyril Cecchinel - I3S Laboratory on 17/05/2016.
  */
 public class CompressedSensorNode extends PolynomialNode {
-    final static double PRECISION = 2;
+    public final static double DEFAULT_PRECISION = 1.0;
     final static String NAME = "InterpolatedSensorNode";
     private int nbPoints;
     private long[] inflexions;
     private CompressedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
-    }
-
-    @Override
-    public void init() {
-        setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, PRECISION);
     }
 
     public int getNbPoints() {

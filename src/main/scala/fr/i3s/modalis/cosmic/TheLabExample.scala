@@ -36,13 +36,13 @@ object TheLabExample {
   val timefield = AtomicField("time", Continuous(Some(IntegerType(0)), None))
 
 
-  val SC_temperature_outdoor = Observation("TEMPERATURE_OUTDOOR", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(-20)), Some(IntegerType(50))))))
-  val SC_temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(50))))))
+  val SC_temperature_outdoor = Observation("TEMPERATURE_OUTDOOR", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(-20)), Some(IntegerType(50))))), Some(2.0))
+  val SC_temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(50))))), Some(2.0))
   val SC_light = Observation("LIGHT", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(1023))))))
   val SC_noise = Observation("NOISE", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(1023))))))
   val SC_opening = Observation("OPENING", timefield, Set(AtomicField("v", Discrete(Set(StringType("OPEN"), StringType("CLOSED"))))))
   val SC_state = Observation("STATE", timefield, Set(AtomicField("v", Discrete(Set(StringType("ON"), StringType("OFF"))))))
-  val SC_power = Observation("POWER", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(2500))))))
+  val SC_power = Observation("POWER", timefield, Set(AtomicField("v", Continuous(Some(IntegerType(0)), Some(IntegerType(2500))))), Some(50.0))
 
   val infrastructure = Container("Campus SophiaTech", EContainerType.Campus, Set(
     Periodic("TEMP_CAMPUS", 300, "http://smartcampus.unice.fr/sensors/TEMP_CAMPUS/data/", SC_temperature_outdoor),

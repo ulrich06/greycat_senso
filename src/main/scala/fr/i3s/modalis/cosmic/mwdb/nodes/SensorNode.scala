@@ -28,9 +28,10 @@ package fr.i3s.modalis.cosmic.mwdb.nodes
 
 import java.lang.Boolean
 
+import org.mwg._
 import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
+import org.mwg.ml.algorithm.regression.PolynomialNode
 import org.mwg.plugin.{AbstractNode, NodeState}
-import org.mwg.{Callback, Constants, Graph, Node}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 13/06/2016.
@@ -68,11 +69,17 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
     */
   def buildActivityNode(): Node
 
+  def buildCompressedNode() = {
+    val state: NodeState = _resolver.resolveState(this, true)
+    if (state.getFromKey(SensorNode.COMPRESSED_RELATIONSHIP) == null) {
+      val compressedNode: Node = graph.newTypedNode(0, time, CompressedSensorNode.NAME)
+      compressedNode.setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, get(SensorNode.PRECISION_KEY).asInstanceOf[Double])
+      add(SensorNode.COMPRESSED_RELATIONSHIP, compressedNode)
+
+    }
+  }
 
   override def init(): Unit = {
-    val compressedNode: Node = graph.newTypedNode(0, time, CompressedSensorNode.NAME)
-    add(SensorNode.COMPRESSED_RELATIONSHIP, compressedNode)
-
     val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
     meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
     meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
@@ -91,9 +98,7 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
         override def on(a: Array[Node]): Unit = {
           val _node = a(0).asInstanceOf[CompressedSensorNode]
           _node.learn(propertyValue.asInstanceOf[Double], new Callback[Boolean] {
-            override def on(a: Boolean): Unit = {
-              println(s"Result $a")
-            }
+            override def on(a: Boolean): Unit = {}
           })
         }
       })
@@ -118,6 +123,8 @@ object SensorNode {
   val ACTIVITY_RELATIONSHIP = "ACTIVITY"
   val STATS_RELATIONSHIP = "STATS"
   val COMPRESSED_RELATIONSHIP = "COMPRESSED"
+
+  val PRECISION_KEY = "precision"
   val SLOTS: Int = 24
   val PERIOD: Long = 24 * 3600
 
