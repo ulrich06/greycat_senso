@@ -45,7 +45,7 @@ function getActivityValues(sensor) {
     call.open("GET", "http://localhost:11000/sensors/" + sensor + "/activity", false);
     call.send(null);
     var answer = JSON.parse(call.responseText);
-    return toDataSet(answer[0]._total);
+    return toDataSet(answer);
 }
 
 function submitFormStats() {
@@ -107,5 +107,4 @@ function printStatsData(datasset, target) {
         chart.zoomToIndexes(Math.round(chart.dataProvider.length * 0.4), Math.round(chart.dataProvider.length * 0.55));
     }
 
-    charts.push(chart);
 }

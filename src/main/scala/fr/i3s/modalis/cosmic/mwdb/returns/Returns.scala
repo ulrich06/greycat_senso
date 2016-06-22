@@ -62,6 +62,10 @@ class ArrayLongReturn extends Return {
   val value = new Field(Array[Long]())
 }
 
+class ArrayIntReturn extends Return {
+  val value = new Field(Array[Int]())
+}
+
 class ArrayStringReturn extends Return {
   val value = new Field(Array[String]())
 }

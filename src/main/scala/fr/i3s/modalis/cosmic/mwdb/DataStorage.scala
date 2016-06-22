@@ -31,9 +31,10 @@ import java.lang.{Boolean, Double}
 import com.typesafe.scalalogging.LazyLogging
 import fr.i3s.modalis.cosmic.collector.SensorData
 import fr.i3s.modalis.cosmic.mwdb.nodes.{CompressedSensorNode, SensorNode}
-import fr.i3s.modalis.cosmic.mwdb.returns.{ArrayLongReturn, ArraySensorDataReturn, DoubleReturn, SensorDataReturn}
+import fr.i3s.modalis.cosmic.mwdb.returns._
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
+import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
 import org.mwg.task._
 
 /**
@@ -63,6 +64,33 @@ object DataStorage {
   }
 
   def getGraph = if (isInitialized) _graph else throw new RuntimeException("Data storage not yet initialized")
+
+  def getCumulatedActivity(sensor: String, returnObject: ArrayIntReturn) = {
+    _graph.newTask().fromIndex("nodes", s"name = $sensor").`then`(new Action {
+      override def eval(taskContext: TaskContext): Unit = taskContext.result().asInstanceOf[Array[Node]].headOption match {
+        case Some(node) => node.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]] {
+          override def on(a: Array[Long]): Unit = {
+            var res = Array.fill(SensorNode.SLOTS + 1)(0)
+            a.foreach(value => {
+              node.jump(value, new Callback[Node] {
+                override def on(a: Node): Unit = a.rel(SensorNode.ACTIVITY_RELATIONSHIP, new Callback[Array[Node]] {
+                  override def on(r: Array[Node]): Unit = {
+                    if (!r.isEmpty) {
+                      val gaussianNode = r(0).asInstanceOf[GaussianSlotProfilingNode]
+                      res = (gaussianNode.getTotal, res).zipped.map(_ + _)
+                    }
+                  }
+                })
+              })
+            })
+            returnObject.value.value = res
+
+          }
+        })
+        case None => ()
+      }
+    }).execute()
+  }
 
   def getInflexions(sensor: String, returnObject: ArrayLongReturn) = {
     _graph.newTask().setTime(System.currentTimeMillis() / 1000).fromIndex("nodes", s"name = $sensor").`then`(new Action {
