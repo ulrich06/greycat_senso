@@ -100,7 +100,28 @@ trait SensorsRouting extends HttpService with LazyLogging {
           complete(returnObject.value.value.toString())
         } ~
           respondWithMediaType(`application/json`) {
+            path("sensors" / Segment / "compression" / "inflexion" / "data" / Segment) { (sensor, tbegin) =>
+              var timestampB: Long = 0
+              try {
+                timestampB = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(tbegin).getTime / 1000
+              }
+              catch {
+                case e: ParseException =>
 
+                  /** Try long input **/
+                  try {
+                    timestampB = tbegin.toLong
+                  }
+                  catch {
+                    case e: NumberFormatException => complete(s"Error while parsing date $tbegin")
+                  }
+              }
+              logger.debug(s"Retrieve inflexions values ($sensor) between $timestampB")
+              val returnObject = new SensorDataReturn
+              DataStorage.getInterpolated(sensor, timestampB, returnObject)
+              complete(returnObject.value.value.toJson.toString())
+
+            } ~
             path("sensors" / Segment / "compression" / "inflexion") { sensor =>
               val returnObject = new ArrayLongReturn
               DataStorage.getInflexions(sensor, returnObject)
