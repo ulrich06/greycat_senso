@@ -154,7 +154,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
               complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.STATS_RELATIONSHIP})").mkString)
             } ~ path("sensors" / Segment / "activity") { sensor => {
               val returnObject = new ArrayIntReturn
-              DataStorage.getCumulatedActivity(sensor, returnObject)
+              DataStorage.getActivity(sensor, returnObject)
               complete(returnObject.value.value.toJson.toString())
             }
               //complete(scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(nodes)/with(name,$sensor)/traverse(${SensorNode.ACTIVITY_RELATIONSHIP})").mkString)
