@@ -48,63 +48,102 @@ function getActivityValues(sensor) {
     return toDataSet(answer);
 }
 
-function submitFormStats() {
+function getInflexionsStats(sensor) {
+    var call = new XMLHttpRequest();
+    call.open("GET", "http://localhost:11000/sensors/" + sensor + "/compression/inflexion/stats", false);
+    call.send(null);
+    var answer = JSON.parse(call.responseText);
+    return toDataSet(answer);
+}
+function submitAnalytics() {
     var name = document.getElementById("sensorsList").value;
-
-    printStatsData(getStatsValues(name), "chartdiv3");
+    printAnalytics(combineAnalytics(name), "statsdiv");
 }
 
-
-function submitFormActivity() {
-    var name = document.getElementById("sensorsList").value;
-
-    printStatsData(getActivityValues(name), "chartdiv4");
+function combineAnalytics(sensor) {
+    var stat = getStatsValues(sensor);
+    var activity = getActivityValues(sensor);
+    var inflexions = getInflexionsStats(sensor);
+    var result = [];
+    for (var i = 0; i < Math.min(stat.length, activity.length) - 1; i++) {
+        result.push({time: i, value1: stat[i].value, value2: activity[i].value, value3: inflexions[i].value})
+    }
+    return result
 }
 
-function printStatsData(datasset, target) {
-    var chart = AmCharts.makeChart(target, {
+function printAnalytics(dataset, target) {
+    AmCharts.makeChart(target, {
         "type": "serial",
         "theme": "light",
-        "dataProvider": datasset,
+        "legend": {
+            "useGraphSettings": true
+        },
+        "dataProvider": dataset,
+        "synchronizeGrid": true,
         "valueAxes": [{
-            "gridColor": "#FFFFFF",
-            "gridAlpha": 0.2,
-            "dashLength": 0
+            "id": "value1",
+            "axisColor": "#FF6600",
+            "axisThickness": 2,
+            "axisAlpha": 1,
+            "position": "left"
+        }, {
+            "id": "value2",
+            "axisColor": "#FCD202",
+            "axisThickness": 2,
+            "axisAlpha": 1,
+            "position": "left",
+            "offset": 50
+        }, {
+            "id": "value3",
+            "axisColor": "#B0DE09",
+            "axisThickness": 2,
+            "gridAlpha": 0,
+            "offset": 50,
+            "axisAlpha": 1,
+            "position": "right"
         }],
-        "gridAboveGraphs": true,
-        "startDuration": 1,
         "graphs": [{
-            "balloonText": "[[time]]: <b>[[value]]</b>",
+            "valueAxis": "value1",
+            "lineColor": "#FF6600",
             "fillAlphas": 0.8,
             "lineAlpha": 0.2,
+            "title": "# collected data",
+            "valueField": "value1",
             "type": "column",
-            "valueField": "value"
+            "minimum": 0
+
+        }, {
+            "valueAxis": "value2",
+            "lineColor": "#FCD202",
+            "fillAlphas": 0.8,
+            "lineAlpha": 0.2,
+            "title": "# activity triggered",
+            "valueField": "value2",
+            "type": "column",
+            "minimum": 0
+        }, {
+            "valueAxis": "value3",
+            "lineColor": "#B0DE09",
+            "fillAlphas": 0.8,
+            "lineAlpha": 0.2,
+            "title": "# inflexions",
+            "valueField": "value3",
+            "type": "column",
+            "minimum": 0
         }],
+        "chartScrollbar": {},
         "chartCursor": {
-            "categoryBalloonEnabled": false,
-            "cursorAlpha": 0,
-            "zoomable": false
+            "cursorPosition": "mouse"
         },
         "categoryField": "time",
         "categoryAxis": {
-            "gridPosition": "start",
-            "gridAlpha": 0,
-            "tickPosition": "start",
-            "tickLength": 20
+            "parseDates": false,
+            "axisColor": "#DADADA",
+            "minorGridEnabled": true
         },
         "export": {
-            "enabled": true
+            "enabled": true,
+            "position": "bottom-right"
         }
-
     });
-
-    chart.addListener("rendered", zoomChart);
-    if (chart.zoomChart) {
-        chart.zoomChart();
-    }
-
-    function zoomChart() {
-        chart.zoomToIndexes(Math.round(chart.dataProvider.length * 0.4), Math.round(chart.dataProvider.length * 0.55));
-    }
-
 }
