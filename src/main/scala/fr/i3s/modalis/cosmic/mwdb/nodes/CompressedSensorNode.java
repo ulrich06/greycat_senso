@@ -29,9 +29,7 @@ package fr.i3s.modalis.cosmic.mwdb.nodes;
 import org.mwg.Callback;
 import org.mwg.Constants;
 import org.mwg.Graph;
-import org.mwg.Node;
 import org.mwg.ml.algorithm.regression.PolynomialNode;
-import org.mwg.plugin.NodeFactory;
 
 /**
  * SmartCampus node
@@ -42,7 +40,8 @@ public class CompressedSensorNode extends PolynomialNode {
     final static String NAME = "InterpolatedSensorNode";
     private int nbPoints;
     private long[] inflexions;
-    private CompressedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
+
+    public CompressedSensorNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
 
@@ -77,15 +76,4 @@ public class CompressedSensorNode extends PolynomialNode {
         return inflexions;
     }
 
-    public static class CompressedSensorNodeFactory implements NodeFactory {
-        @Override
-        public String name() {
-            return NAME;
-        }
-
-        @Override
-        public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-            return new CompressedSensorNode(world, time, id, graph, initialResolution);
-        }
-    }
 }

@@ -24,6 +24,7 @@
  * ***********************************************************************
  */
 
+
 package fr.i3s.modalis.cosmic
 
 import akka.actor.{ActorSystem, Props}
@@ -34,13 +35,8 @@ import com.typesafe.config.ConfigFactory
 import fr.i3s.modalis.cosmic.collector.MWDBCollectorActor
 import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
-import fr.i3s.modalis.cosmic.mwdb.nodes.CompressedSensorNode.CompressedSensorNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.ContainerNode.ContainerNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.EventSensorNode.EventSensorNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.ObservationNode.ObservationNodeFactory
-import fr.i3s.modalis.cosmic.mwdb.nodes.PeriodicSensorNode.PeriodicSensorNodeFactory
-import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
-import org.mwg.ml.algorithm.regression.PolynomialNode
+import fr.i3s.modalis.cosmic.mwdb.nodes.SmartCampusPlugins
+import org.mwg.ml.MLPlugin
 import org.mwg.{GraphBuilder, LevelDBStorage}
 import spray.can.Http
 
@@ -61,14 +57,7 @@ object Launch extends App {
 
 
   DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
-    new GraphBuilder().
-      addNodeType(new ContainerNodeFactory).
-      addNodeType(new ObservationNodeFactory).
-      addNodeType(new GaussianSlotProfilingNode.Factory()).
-      addNodeType(new CompressedSensorNodeFactory).
-      addNodeType(new PolynomialNode.Factory()).
-      addNodeType(new PeriodicSensorNodeFactory).
-      addNodeType(new EventSensorNodeFactory).
+    new GraphBuilder().withPlugin(new MLPlugin()).withPlugin(new SmartCampusPlugins()).
       withStorage(new LevelDBStorage("smartcampus").useNative(false)).
       saveEvery(10000L).
       build()))

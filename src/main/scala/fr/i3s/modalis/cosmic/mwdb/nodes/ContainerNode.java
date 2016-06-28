@@ -27,9 +27,7 @@
 package fr.i3s.modalis.cosmic.mwdb.nodes;
 
 import org.mwg.Graph;
-import org.mwg.Node;
 import org.mwg.plugin.AbstractNode;
-import org.mwg.plugin.NodeFactory;
 
 /**
  * SmartCampus node
@@ -37,11 +35,11 @@ import org.mwg.plugin.NodeFactory;
  */
 public class ContainerNode extends AbstractNode {
 
-    private static final String NAME = "ContainerNode";
+    public static final String NAME = "ContainerNode";
 
     private int calls = 0;
 
-    private ContainerNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
+    public ContainerNode(long p_world, long p_time, long p_id, Graph p_graph, long[] currentResolution) {
         super(p_world, p_time, p_id, p_graph, currentResolution);
     }
 
@@ -55,16 +53,4 @@ public class ContainerNode extends AbstractNode {
         return calls;
     }
 
-
-    public static class ContainerNodeFactory implements NodeFactory {
-        @Override
-        public String name() {
-            return NAME;
-        }
-
-        @Override
-        public Node create(long world, long time, long id, Graph graph, long[] initialResolution) {
-            return new ContainerNode(world, time, id, graph, initialResolution);
-        }
-    }
 }

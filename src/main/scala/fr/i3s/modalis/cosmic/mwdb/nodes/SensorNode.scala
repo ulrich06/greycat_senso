@@ -29,7 +29,7 @@ package fr.i3s.modalis.cosmic.mwdb.nodes
 import java.lang.Boolean
 
 import org.mwg._
-import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
+import org.mwg.ml.algorithm.profiling.GaussianSlotNode
 import org.mwg.ml.algorithm.regression.PolynomialNode
 import org.mwg.plugin.{AbstractNode, NodeState}
 
@@ -38,6 +38,9 @@ import org.mwg.plugin.{AbstractNode, NodeState}
   */
 abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long])
   extends AbstractNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph, currentResolution: Array[Long]) {
+
+  val min: Double = get("min").asInstanceOf[Double]
+  val max: Double = get("max").asInstanceOf[Double]
 
   def getDataCompressionRatio = {
     var nbPointsCompressed: Int = 1
@@ -73,16 +76,27 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
     val state: NodeState = _resolver.resolveState(this, true)
     if (state.getFromKey(SensorNode.COMPRESSED_RELATIONSHIP) == null) {
       val compressedNode: Node = graph.newTypedNode(0, time, CompressedSensorNode.NAME)
-      compressedNode.setProperty(PolynomialNode.PRECISION_KEY, Type.DOUBLE, get(SensorNode.PRECISION_KEY).asInstanceOf[Double])
+      compressedNode.setProperty(PolynomialNode.PRECISION, Type.DOUBLE, get(SensorNode.PRECISION_KEY).asInstanceOf[Double])
       add(SensorNode.COMPRESSED_RELATIONSHIP, compressedNode)
 
     }
   }
 
+  override def get(propertyName: String): AnyRef = {
+    if ("value".equals(propertyName)) {
+      if (super.get(propertyName).asInstanceOf[Double] >= max) {
+        max.asInstanceOf[AnyRef]
+      } else if (super.get(propertyName).asInstanceOf[Double] <= min) {
+        min.asInstanceOf[AnyRef]
+      } else super.get(propertyName)
+    }
+    else super.get(propertyName)
+  }
+
   override def init(): Unit = {
-    val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
-    meanValue.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
-    meanValue.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
+    val meanValue: Node = graph.newTypedNode(0, time, GaussianSlotNode.NAME)
+    meanValue.set(GaussianSlotNode.SLOTS_NUMBER, SensorNode.SLOTS)
+    meanValue.set(GaussianSlotNode.PERIOD_SIZE, SensorNode.PERIOD)
     add(SensorNode.STATS_RELATIONSHIP, meanValue)
 
 
@@ -92,20 +106,24 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
   override def setProperty(propertyName: String, propertyType: Byte, propertyValue: Any) {
     val state: NodeState = _resolver.resolveState(this, true)
 
-    if ("value" == propertyName && state.time() > 0L) {
+    if ("value".equals(propertyName) && state.time() > 0L) {
 
       rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
         override def on(a: Array[Node]): Unit = {
+          println(s"Learn: ${propertyValue.asInstanceOf[Double]}")
           val _node = a(0).asInstanceOf[CompressedSensorNode]
           _node.learn(propertyValue.asInstanceOf[Double], new Callback[Boolean] {
             override def on(a: Boolean): Unit = {}
+          })
+          _node.extrapolate(new Callback[java.lang.Double] {
+            override def on(a: java.lang.Double): Unit = println(s"Learnt $a (${_node.toString}")
           })
         }
       })
 
       rel(SensorNode.STATS_RELATIONSHIP, new Callback[Array[Node]]() {
         def on(result: Array[Node]) {
-          val profiler: GaussianSlotProfilingNode = result(0).asInstanceOf[GaussianSlotProfilingNode]
+          val profiler: GaussianSlotNode = result(0).asInstanceOf[GaussianSlotNode]
           profiler.learnArray(Array[Double](propertyValue.asInstanceOf[Double]))
         }
       })
@@ -114,9 +132,8 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
 
     super.setProperty(propertyName, propertyType, propertyValue)
   }
-
-
 }
+
 
 object SensorNode {
 

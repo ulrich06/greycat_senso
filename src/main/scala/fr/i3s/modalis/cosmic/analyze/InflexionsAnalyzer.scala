@@ -35,7 +35,7 @@ import scala.io.Source
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
 object InflexionsAnalyzer {
-  val ZONES = 5
+  val ZONES = 3
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
 

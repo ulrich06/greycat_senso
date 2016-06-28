@@ -34,7 +34,7 @@ import fr.i3s.modalis.cosmic.mwdb.nodes.{CompressedSensorNode, EventSensorNode, 
 import fr.i3s.modalis.cosmic.mwdb.returns._
 import org.kevoree.modeling.addons.rest.RestGateway
 import org.mwg._
-import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
+import org.mwg.ml.algorithm.profiling.GaussianSlotNode
 import org.mwg.task._
 
   /**
@@ -73,7 +73,7 @@ import org.mwg.task._
             node match {
               case x: EventSensorNode => x.rel(SensorNode.ACTIVITY_RELATIONSHIP, new Callback[Array[Node]] {
                 override def on(a: Array[Node]): Unit = if (!a.isEmpty) {
-                  val gaussianNode = a(0).asInstanceOf[GaussianSlotProfilingNode]
+                  val gaussianNode = a(0).asInstanceOf[GaussianSlotNode]
                   res = gaussianNode.getTotal
                 }
               })
@@ -84,7 +84,7 @@ import org.mwg.task._
                       override def on(a: Node): Unit = a.rel(SensorNode.ACTIVITY_RELATIONSHIP, new Callback[Array[Node]] {
                         override def on(r: Array[Node]): Unit = {
                           if (!r.isEmpty) {
-                            val gaussianNode = r(0).asInstanceOf[GaussianSlotProfilingNode]
+                            val gaussianNode = r(0).asInstanceOf[GaussianSlotNode]
                             res = (gaussianNode.getTotal, res).zipped.map(_ + _)
                           }
                         }

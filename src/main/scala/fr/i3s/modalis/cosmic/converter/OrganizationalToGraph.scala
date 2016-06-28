@@ -61,6 +61,13 @@ object OrganizationalToGraph extends LazyLogging {
                 sensorNode.setProperty("name", Type.STRING, s.name)
                 sensorNode.setProperty("value", Type.DOUBLE, Double.NaN)
                 sensorNode.setProperty("type", Type.STRING, s.observes.name)
+                val min = s.observes.values.head.range.asInstanceOf[Continuous].min.get.value
+                val max = s.observes.values.head.range.asInstanceOf[Continuous].max.get.value
+
+                (min, max) match {
+                  case (x: Int, y: Int) => sensorNode.setProperty("min", Type.INT, x); sensorNode.setProperty("max", Type.INT, y)
+                  case (x: Double, y: Double) => sensorNode.setProperty("min", Type.DOUBLE, x); sensorNode.setProperty("max", Type.DOUBLE, y)
+                }
                 sensorNode.asInstanceOf[SensorNode].buildCompressedNode()
                 parent.add("sensor", sensorNode)
                 graph.index("nodes", sensorNode, "name", null)

@@ -26,8 +26,7 @@
 
 package fr.i3s.modalis.cosmic.mwdb.nodes
 
-import org.mwg.ml.algorithm.profiling.GaussianSlotProfilingNode
-import org.mwg.plugin.NodeFactory
+import org.mwg.ml.algorithm.profiling.GaussianSlotNode
 import org.mwg.{Callback, Graph, Node}
 
 /**
@@ -47,7 +46,7 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
 
       rel(SensorNode.ACTIVITY_RELATIONSHIP, new Callback[Array[Node]] {
         override def on(a: Array[Node]): Unit = {
-          val _node = a(0).asInstanceOf[GaussianSlotProfilingNode]
+          val _node = a(0).asInstanceOf[GaussianSlotNode]
           _node.learnArray(Array(1.0))
         }
       })
@@ -62,9 +61,9 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
     * @return Activity node
     */
   override def buildActivityNode(): Node = {
-    val node = graph().newTypedNode(0, time, GaussianSlotProfilingNode.NAME)
-    node.set(GaussianSlotProfilingNode.PERIOD_SIZE, SensorNode.PERIOD)
-    node.set(GaussianSlotProfilingNode.SLOTS_NUMBER, SensorNode.SLOTS)
+    val node = graph().newTypedNode(0, time, GaussianSlotNode.NAME)
+    node.set(GaussianSlotNode.PERIOD_SIZE, SensorNode.PERIOD)
+    node.set(GaussianSlotNode.SLOTS_NUMBER, SensorNode.SLOTS)
     node.set("On", "USAGES")
     node
   }
@@ -72,15 +71,6 @@ class PeriodicSensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph: Graph
 
 object PeriodicSensorNode {
   val NAME: String = "PeriodicSensorNode"
-
-  sealed class PeriodicSensorNodeFactory extends NodeFactory {
-    def name: String = NAME
-
-    def create(world: Long, time: Long, id: Long, graph: Graph, initialResolution: Array[Long]): Node = {
-      new PeriodicSensorNode(world, time, id, graph, initialResolution)
-    }
-  }
-
 }
 
 
