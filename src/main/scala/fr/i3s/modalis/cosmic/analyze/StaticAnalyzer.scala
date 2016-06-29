@@ -26,7 +26,9 @@
 
 package fr.i3s.modalis.cosmic.analyze
 
-import org.joda.time.DateTime
+import fr.i3s.modalis.cosmic.TheLabExample
+import fr.i3s.modalis.cosmic.organizational.{EventBased, Periodic}
+import org.joda.time.{DateTime, DateTimeFieldType}
 import play.api.libs.json.{JsArray, Json}
 
 import scala.io.Source
@@ -34,7 +36,9 @@ import scala.io.Source
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
-object InflexionsAnalyzer {
+object StaticAnalyzer {
+
+
   val ZONES = 3
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
@@ -44,35 +48,41 @@ object InflexionsAnalyzer {
     // Retrieve inflexions for the required sensor
     val inflexions = Json.parse(Source.fromURL(URL(sensor)).mkString).asOpt[JsArray]
 
-    if (inflexions.isDefined) {
       // Convert the timestamps into dates
       val inflexionsDates = inflexions.get.value.map { v => new DateTime(v.as[Long] * 1000L) }
-      // I create a table of the number of inflexion per hour day
-      val dateTable = inflexionsDates.groupBy(_.hourOfDay()).map { v => (v._1.getAsText.toInt, v._2.length) }.toList.sortBy(_._1)
-      println(dateTable)
-      // I sort the table by the number of inflexions (the lower the number is, the lower is the activity of the sensor)
-      val groupedByInflexions = dateTable.groupBy(_._2).toList.sortBy(_._1)
 
-      if (groupedByInflexions.size > ZONES) {
-        // I cut the table in n=ZONES parts
-        val cutResult = cut(groupedByInflexions, ZONES).toList
-        for (i <- cutResult.indices) {
-          val result = cutResult(i).flatMap(_._2.map(_._1)).sorted
-          val mean = computeMeanPeriod(result.toList, dateTable)
-          val period = 3600 / mean
-          println(s"Zone $i: $result (mean: ${mean} values per h - period=$period seconds) ")
-        }
-      } else throw new IllegalArgumentException(s"ZONES argument is too high ($ZONES > ${groupedByInflexions.size})")
+    val inflexionsArray = inflexionsDates.groupBy(d => (d.get(DateTimeFieldType.year()), d.get(DateTimeFieldType.dayOfYear()))).map { v => v._1 -> v._2.groupBy(_.hourOfDay().getAsText.toInt) }
+    val inflexionsWithTS = inflexionsArray.map { v => v._1 -> v._2.map { d => d._1 -> d._2.map {
+      _.secondOfDay().getAsText.toLong
+    }.sorted.sliding(2).map {
+      case Seq(x, y, _*) => y - x
+      case Seq(x) => x - d._1 * 3600
+    }.toList
+    }
+    }
 
-    } else throw new IllegalArgumentException(s"$sensor can not be parsed")
+    val dtList = inflexionsWithTS.values.map {
+      _.toSeq
+    }.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
+
+
+    println(dtList)
+
+    val minPeriod = dtList.map { v => (v._1, v._2.min.toInt, v._2.length) }.filterNot(_._2 == 0)
+    val minPeriodSorted = minPeriod.toList.sortBy(_._3).reverse
+
+    minPeriodSorted
+
 
   }
 
-  def computeMeanPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
+  def URL(sensor: String) = s"http://localhost:11000/sensors/$sensor/compression/inflexion"
+
+  def computingPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
     val list = inflexions.filter(v => zone contains v._1).map {
       _._2
     }
-    list.sum / list.length
+    list.sum / list.size
   }
 
   def cut[A](xs: Seq[A], n: Int) = {
@@ -80,10 +90,33 @@ object InflexionsAnalyzer {
     val (smaller, bigger) = xs.splitAt(xs.size - rem * (quot + 1))
     smaller.grouped(quot) ++ bigger.grouped(quot + 1)
   }
-
-  def URL(sensor: String) = s"http://localhost:11000/sensors/$sensor/compression/inflexion"
 }
 
 object RunAnalyzer extends App {
-  InflexionsAnalyzer("MW_power")
+
+  val SENSOR = "AC_443"
+
+  /** **************************/
+
+  val labSensor = TheLabExample.catalog.getSensor(SENSOR)
+
+  if (labSensor.isDefined) {
+    val result = StaticAnalyzer(SENSOR)
+
+    // Compare with static perdiod if periodic sensor
+    labSensor.get match {
+      case x: Periodic => {
+
+        val refPeriod = x.period
+        val benefits = result.map { x => (x._1, x._2, x._3, (-(x._2.toDouble - refPeriod) / refPeriod) * 100) }
+        println(benefits)
+      }
+      case x: EventBased => println("Event-based sensor")
+    }
+
+
+  }
+
+
+
 }
