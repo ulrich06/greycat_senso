@@ -53,14 +53,18 @@ object Launch extends App {
   implicit val system = ActorSystem("on-spray-can")
 
   val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
-  implicit val timeout = Timeout(5.seconds)
+  implicit val timeout = Timeout(15.seconds)
 
 
-  DataStorage.init(OrganizationalToGraph(TheLabExample.catalog,
+  DataStorage.init(OrganizationalToGraph(DemoSNT.catalog,
     new GraphBuilder().withPlugin(new MLPlugin()).withPlugin(new SmartCampusPlugins()).
-      withStorage(new LevelDBStorage("smartcampus").useNative(false)).
+      withStorage(new LevelDBStorage("snt").useNative(false)).
       saveEvery(10000L).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
+
+
+  //val files = new File("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets").listFiles().filter(_.getName endsWith ".json").map{_.getAbsolutePath}.foreach(HistorySmartCampusImporterFromFile(_))
+  //HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets/TEMP_CAMPUS_JUNE.json")
 }

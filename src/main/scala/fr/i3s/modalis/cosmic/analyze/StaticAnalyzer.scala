@@ -26,12 +26,10 @@
 
 package fr.i3s.modalis.cosmic.analyze
 
-import fr.i3s.modalis.cosmic.TheLabExample
-import fr.i3s.modalis.cosmic.organizational.{EventBased, Periodic}
+import fr.i3s.modalis.cosmic.mwdb.nodes.{CompressedSensorNode, SensorNode}
 import org.joda.time.{DateTime, DateTimeFieldType}
-import play.api.libs.json.{JsArray, Json}
-
-import scala.io.Source
+import org.mwg.task.{Action, TaskContext}
+import org.mwg.{Callback, Graph, Node}
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
@@ -43,13 +41,22 @@ object StaticAnalyzer {
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
 
-  def apply(sensor: String) = {
+  def apply(sensor: String, graph: Graph) = {
     println(s"Requested: $sensor")
     // Retrieve inflexions for the required sensor
-    val inflexions = Json.parse(Source.fromURL(URL(sensor)).mkString).asOpt[JsArray]
+    var inflexions: List[Long] = 0L :: Nil
+    graph.newTask().fromIndex("nodes", s"name = $sensor").`then`(new Action {
+      override def eval(context: TaskContext): Unit = context.result().asInstanceOf[Array[Node]](0).rel(SensorNode.COMPRESSED_RELATIONSHIP, new Callback[Array[Node]] {
+        override def on(result: Array[Node]): Unit = {
+          inflexions = result(0).asInstanceOf[CompressedSensorNode].getInflexions.toList
+        }
+      })
+    }).execute()
 
-      // Convert the timestamps into dates
-      val inflexionsDates = inflexions.get.value.map { v => new DateTime(v.as[Long] * 1000L) }
+
+
+    // Convert the timestamps into dates
+    val inflexionsDates = inflexions.map { v => new DateTime(v * 1000L) }
 
     val inflexionsArray = inflexionsDates.groupBy(d => (d.get(DateTimeFieldType.year()), d.get(DateTimeFieldType.dayOfYear()))).map { v => v._1 -> v._2.groupBy(_.hourOfDay().getAsText.toInt) }
     val inflexionsWithTS = inflexionsArray.map { v => v._1 -> v._2.map { d => d._1 -> d._2.map {
@@ -65,9 +72,6 @@ object StaticAnalyzer {
       _.toSeq
     }.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
 
-
-    println(dtList)
-
     val minPeriod = dtList.map { v => (v._1, v._2.min.toInt, v._2.length) }.filterNot(_._2 == 0)
     val minPeriodSorted = minPeriod.toList.sortBy(_._3).reverse
 
@@ -76,47 +80,11 @@ object StaticAnalyzer {
 
   }
 
-  def URL(sensor: String) = s"http://localhost:11000/sensors/$sensor/compression/inflexion"
-
   def computingPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
     val list = inflexions.filter(v => zone contains v._1).map {
       _._2
     }
     list.sum / list.size
   }
-
-  def cut[A](xs: Seq[A], n: Int) = {
-    val (quot, rem) = (xs.size / n, xs.size % n)
-    val (smaller, bigger) = xs.splitAt(xs.size - rem * (quot + 1))
-    smaller.grouped(quot) ++ bigger.grouped(quot + 1)
-  }
-}
-
-object RunAnalyzer extends App {
-
-  val SENSOR = "AC_443"
-
-  /** **************************/
-
-  val labSensor = TheLabExample.catalog.getSensor(SENSOR)
-
-  if (labSensor.isDefined) {
-    val result = StaticAnalyzer(SENSOR)
-
-    // Compare with static perdiod if periodic sensor
-    labSensor.get match {
-      case x: Periodic => {
-
-        val refPeriod = x.period
-        val benefits = result.map { x => (x._1, x._2, x._3, (-(x._2.toDouble - refPeriod) / refPeriod) * 100) }
-        println(benefits)
-      }
-      case x: EventBased => println("Event-based sensor")
-    }
-
-
-  }
-
-
 
 }

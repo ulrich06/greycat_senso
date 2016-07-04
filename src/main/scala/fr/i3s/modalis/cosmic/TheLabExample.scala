@@ -97,6 +97,8 @@ object TheLabExample {
           Container("Office 443", EContainerType.Room, Set(
             //  EventBased("DOOR443STATE", "onChange", "http://smartcampus.unice.fr/sensors/DOOR443STATE/data/", SC_opening),
             Periodic("LIGHT_443", 300, "http://smartcampus.unice.fr/sensors/LIGHT_443/data", SC_light),
+            Periodic("TEMP_TEMOIN", 60, "http://smartcampus.unice.fr/sensors/LIGHT_443/data", SC_temperature_indoor),
+            Periodic("TEMP_XP", 60, "http://smartcampus.unice.fr/sensors/LIGHT_443/data", SC_temperature_indoor),
             Periodic("TEMP_443V", 300, "http://smartcampus.unice.fr/sensors/TEMP_442V/data/", SC_temperature_indoor),
             Periodic("AC_443", 300, "http://smartcampus.unice.fr/sensors/AC_443/data/", SC_temperature_indoor),
             //EventBased("WINDOW443STATE", "onChange", "http://smartcampus.unice.fr/sensors/WINDOW443STATE/data/", SC_opening),

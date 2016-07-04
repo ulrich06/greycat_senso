@@ -30,6 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
+import fr.i3s.modalis.cosmic.analyze.StaticAnalyzer
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
@@ -95,7 +96,23 @@ trait SensorsRouting extends HttpService with LazyLogging {
     import SensorDataJsonSupport._
     get {
       respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
-        path("sensors" / Segment / "compression") { sensor =>
+        path("sensors" / Segment / "sleep") { sensor =>
+          var sleepPeriod: Int = 0
+          val result = StaticAnalyzer(sensor, DataStorage.getGraph)
+          val now = new DateTime(System.currentTimeMillis)
+          println(result)
+          val relevantHour = result.map(_._1).filter(_ < now.getHourOfDay).sorted.reverse.head
+          println(relevantHour)
+          val relevantValue = result.find(_._1 == relevantHour).get
+          if (now.getMinuteOfHour * 60 + now.getSecondOfMinute + relevantValue._2 < 3600) {
+
+            sleepPeriod = relevantValue._2
+          }
+          else {
+            sleepPeriod = 3600 - (now.getMinuteOfHour * 60 + now.getSecondOfMinute)
+          }
+          complete("sleep=" + sleepPeriod.toString())
+        } ~ path("sensors" / Segment / "compression") { sensor =>
           val returnObject = new DoubleReturn
           DataStorage.getCompressionRate(sensor, returnObject)
           complete(returnObject.value.value.toString())
@@ -243,7 +260,10 @@ trait CollectRouting extends HttpService with LazyLogging {
         entity(as[SensorData]) { sensordata =>
           logger.info(s"[POST] $sensordata")
           val returnObject = new SensorDataReturn
-          DataStorage.update(sensordata, returnObject)
+          if (sensordata.t equals "0")
+            DataStorage.update(sensordata.copy(t = (System.currentTimeMillis / 1000).toString), returnObject)
+          else
+            DataStorage.update(sensordata, returnObject)
           respondWithMediaType(`application/json`) {
             complete(returnObject.value.value.toJson.toString())
           }
