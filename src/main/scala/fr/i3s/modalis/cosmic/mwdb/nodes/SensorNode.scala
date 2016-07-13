@@ -64,6 +64,16 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
     result
   }
 
+  def getTimeline = {
+    var result: Array[Long] = Array[Long]()
+    this.timepoints(Constants.BEGINNING_OF_TIME, Constants.END_OF_TIME, new Callback[Array[Long]] {
+      override def on(a: Array[Long]): Unit = {
+        result = a.drop(1) //Drop the node origin (0)
+      }
+    })
+    result
+  }
+
 
   /**
     * Build the activity node related to the sensor
