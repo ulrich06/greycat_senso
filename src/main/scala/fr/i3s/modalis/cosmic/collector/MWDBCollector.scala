@@ -30,7 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.analyze.StaticAnalyzer
+import fr.i3s.modalis.cosmic.analyze.SamplingAnalyzer
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
@@ -98,7 +98,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
       respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
         path("sensors" / Segment / "sleep") { sensor =>
           var sleepPeriod: Int = 0
-          val result = StaticAnalyzer(sensor, DataStorage.getGraph)
+          val result = SamplingAnalyzer(sensor, DataStorage.getGraph)
           val now = new DateTime(System.currentTimeMillis)
           println(result)
           val relevantHour = result.map(_._1).filter(_ < now.getHourOfDay).sorted.reverse.head

@@ -34,7 +34,7 @@ import org.mwg.{Callback, Graph, Node}
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
-object StaticAnalyzer {
+object SamplingAnalyzer {
 
 
   val ZONES = 3
