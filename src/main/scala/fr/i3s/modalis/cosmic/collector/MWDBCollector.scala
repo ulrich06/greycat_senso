@@ -30,7 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.analyze.SamplingAnalyzer
+import fr.i3s.modalis.cosmic.analyze.{SamplingAnalyzer, SendingAnalyzer}
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
@@ -112,6 +112,19 @@ trait SensorsRouting extends HttpService with LazyLogging {
             sleepPeriod = 3600 - (now.getMinuteOfHour * 60 + now.getSecondOfMinute)
           }
           complete("sleep=" + sleepPeriod.toString())
+        } ~ path("sensors" / Segment / "sending") { sensor =>
+          var sendingPeriod: Int = 0
+          val result = SendingAnalyzer(sensor, DataStorage.getGraph)
+          val now = new DateTime(System.currentTimeMillis)
+          if (now.getMinuteOfHour * 60 + now.getSecondOfMinute + result(now.getHourOfDay) < 3600) {
+
+            sendingPeriod = result(now.getHourOfDay)
+          }
+          else {
+            sendingPeriod = 3600 - (now.getMinuteOfHour * 60 + now.getSecondOfMinute)
+          }
+          println(result)
+          complete("sending=" + sendingPeriod.toString)
         } ~ path("sensors" / Segment / "compression") { sensor =>
           val returnObject = new DoubleReturn
           DataStorage.getCompressionRate(sensor, returnObject)

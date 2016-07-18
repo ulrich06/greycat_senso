@@ -58,8 +58,11 @@ object SendingAnalyzer {
 
     val nbDays = Days.daysBetween(new DateTime(timeLine.last).toLocalDate, new DateTime(timeLine.head).toLocalDate).getDays
     println(nbDays)
-    //Computed sending period (rounded to higher number) for sensor, in min
-    activities.map { e => Try((60.0 / (e.toDouble / nbDays.toDouble)).toInt).getOrElse(0) }
+    //Computed sending period (rounded to higher number) for sensor, in seconds
+    val res = activities.map { e => Try(((60.0 / (e.toDouble / nbDays.toDouble)) * 60.0).toInt).getOrElse(0) }
+    println(res)
+    res
+
 
   }
 

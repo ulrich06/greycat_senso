@@ -35,8 +35,8 @@ import fr.i3s.modalis.cosmic.organizational.shared.{DoubleType, IntegerType}
 object DemoSNT {
   val timefield = AtomicField("time", Continuous(Some(IntegerType(0)), None))
 
-  val temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(50.0))))), Some(2.0))
-  val vcc = Observation("VCC", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(5000.0))))), Some(5.0))
+  val temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(50.0))))), Some(0.25))
+  val vcc = Observation("VCC", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(5000.0))))), Some(100.0))
 
   val infrastructure = Container("SnT", EContainerType.Campus, Set(
     Periodic("TEMP_REAL", 60, "", temperature_indoor),
