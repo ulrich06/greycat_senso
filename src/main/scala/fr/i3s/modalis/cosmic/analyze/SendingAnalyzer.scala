@@ -33,8 +33,6 @@ import org.joda.time.{DateTime, Days}
 import org.mwg.task.{Action, TaskContext}
 import org.mwg.{Graph, Node}
 
-import scala.util.Try
-
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
@@ -57,9 +55,10 @@ object SendingAnalyzer {
 
 
     val nbDays = Days.daysBetween(new DateTime(timeLine.last).toLocalDate, new DateTime(timeLine.head).toLocalDate).getDays
-    println(nbDays)
+    println(s"Nb days: $nbDays")
+    println(s"Activities: $activities")
     //Computed sending period (rounded to higher number) for sensor, in seconds
-    val res = activities.map { e => Try(((60.0 / (e.toDouble / nbDays.toDouble)) * 60.0).toInt).getOrElse(0) }
+    val res = activities.map { e => if (e != 0 && nbDays != 0) (60.0 / (e.toDouble / nbDays.toDouble)).toInt * 60 else 0 }
     println(res)
     res
 
