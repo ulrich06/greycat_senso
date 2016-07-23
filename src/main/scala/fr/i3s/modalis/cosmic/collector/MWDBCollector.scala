@@ -123,8 +123,13 @@ trait SensorsRouting extends HttpService with LazyLogging {
           else {
             sendingPeriod = 3600 - (now.getMinuteOfHour * 60 + now.getSecondOfMinute)
           }
-          println(result)
-          complete("sending=" + sendingPeriod.toString)
+          //println(result)
+          //complete("sending=" + sendingPeriod.toString)
+
+          val table = List(0, 0, 0, 0, 0, 0, 0, 1800, 1800, 1200, 1200, 1200, 900, 900, 1200, 1200, 1800, 1800, 2700, 0, 0, 0, 0, 0)
+          val res = table(now.getHourOfDay).toString
+          println(s"Mock: $res")
+          complete(s"sending=$res")
         } ~ path("sensors" / Segment / "compression") { sensor =>
           val returnObject = new DoubleReturn
           DataStorage.getCompressionRate(sensor, returnObject)

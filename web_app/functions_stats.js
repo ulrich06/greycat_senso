@@ -34,7 +34,7 @@ function toDataSet(arrayTotal) {
 
 function getStatsValues(sensor) {
     var call = new XMLHttpRequest();
-    call.open("GET", "http://localhost:11000/sensors/" + sensor + "/stats", false);
+    call.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + sensor + "/stats", false);
     call.send(null);
     var answer = JSON.parse(call.responseText);
     return toDataSet(answer[0]._total);
@@ -42,7 +42,7 @@ function getStatsValues(sensor) {
 
 function getActivityValues(sensor) {
     var call = new XMLHttpRequest();
-    call.open("GET", "http://localhost:11000/sensors/" + sensor + "/activity", false);
+    call.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + sensor + "/activity", false);
     call.send(null);
     var answer = JSON.parse(call.responseText);
     return toDataSet(answer);
@@ -50,7 +50,7 @@ function getActivityValues(sensor) {
 
 function getInflexionsStats(sensor) {
     var call = new XMLHttpRequest();
-    call.open("GET", "http://localhost:11000/sensors/" + sensor + "/compression/inflexion/stats", false);
+    call.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + sensor + "/compression/inflexion/stats", false);
     call.send(null);
     var answer = JSON.parse(call.responseText);
     return toDataSet(answer);

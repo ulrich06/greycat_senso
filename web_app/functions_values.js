@@ -30,7 +30,7 @@
 
 function getSensors() {
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open("GET", "http://localhost:11000/settings/sensors", false);
+    xmlHttp.open("GET", "http://" + document.getElementById("server").value + ":11000/settings/sensors", false);
     xmlHttp.send(null);
     return JSON.parse(xmlHttp.responseText)
 }
@@ -60,9 +60,9 @@ function getValues(name, tbegin, tend) {
     var xmlHttp = new XMLHttpRequest("GET");
     console.log(tbegin);
     if (isNaN(tbegin) && isNaN(tend))
-        xmlHttp.open("GET", "http://localhost:11000/sensors/" + name + "/data", false);
+        xmlHttp.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + name + "/data", false);
     else
-        xmlHttp.open("GET", "http://localhost:11000/sensors/" + name + "/data/" + tbegin + "/" + tend, false);
+        xmlHttp.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + name + "/data/" + tbegin + "/" + tend, false);
     xmlHttp.send(null);
     var answer = JSON.parse(xmlHttp.responseText).reverse();
     for (var i = 0; i < answer.length; i++) {
@@ -75,16 +75,16 @@ function getValues(name, tbegin, tend) {
 function getInflexionsValues(name, tbegin, tend) {
     var xmlHttp = new XMLHttpRequest("GET");
     if (isNaN(tbegin) && isNaN(tend))
-        xmlHttp.open("GET", "http://localhost:11000/sensors/" + name + "/compression/inflexion", false);
+        xmlHttp.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + name + "/compression/inflexion", false);
     else
-        xmlHttp.open("GET", "http://localhost:11000/sensors/" + name + "/compression/inflexion/" + tbegin + "/" + tend, false);
+        xmlHttp.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + name + "/compression/inflexion/" + tbegin + "/" + tend, false);
     xmlHttp.send(null);
     var answer = JSON.parse(xmlHttp.responseText).reverse();
     var result = [];
     for (var i = 0; i < answer.length; i++) {
 
         var singleValue = new XMLHttpRequest("GET");
-        singleValue.open("GET", "http://localhost:11000/sensors/" + name + "/compression/inflexion/data/" + answer[i], false);
+        singleValue.open("GET", "http://" + document.getElementById("server").value + ":11000/sensors/" + name + "/compression/inflexion/data/" + answer[i], false);
         singleValue.send(null);
 
         var valueAnswer = JSON.parse(singleValue.responseText);

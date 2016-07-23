@@ -58,13 +58,11 @@ object Launch extends App {
 
   DataStorage.init(OrganizationalToGraph(DemoSNT.catalog,
     new GraphBuilder().withPlugin(new MLPlugin()).withPlugin(new SmartCampusPlugins()).
-      withStorage(new LevelDBStorage("snt").useNative(false)).
+      withStorage(new LevelDBStorage("demoSNT").useNative(false)).
       saveEvery(10000L).
       build()))
 
   IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
 
-
-  //val files = new File("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets").listFiles().filter(_.getName endsWith ".json").map{_.getAbsolutePath}.foreach(HistorySmartCampusImporterFromFile(_))
   //HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets/TEMP_CAMPUS_JUNE.json")
 }

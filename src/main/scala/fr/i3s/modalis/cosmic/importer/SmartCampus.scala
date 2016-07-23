@@ -99,7 +99,7 @@ object HistorySmartCampusImporterFromURL {
 
 object HistorySmartCampusImporterFromFile {
 
-  val TARGET = "http://0.0.0.0:11000/collect"
+  val TARGET = "http://kloud4:11000/collect"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
   def apply(pathToFile: String) = {
@@ -116,4 +116,8 @@ object HistorySmartCampusImporterFromFile {
       client.execute(post)
     }
   }
+}
+
+object DoIt extends App {
+  HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets/TEMP_443V_JULY.json")
 }
