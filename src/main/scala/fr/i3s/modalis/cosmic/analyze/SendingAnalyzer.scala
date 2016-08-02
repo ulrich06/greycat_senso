@@ -37,7 +37,7 @@ import org.mwg.{Graph, Node}
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
-object SendingAnalyzer {
+object SendingAnalyzer extends Analyzer{
 
   def apply(sensor: String, graph: Graph) = {
     println(s"Requested: $sensor")
@@ -66,4 +66,8 @@ object SendingAnalyzer {
 
   }
 
+}
+
+object SendingAnalyzerMock extends Analyzer{
+  override def apply(sensor: String, graph: Graph): List[Int] = List(3600, 3600, 3600, 3600, 3600, 3600, 3600, 1800, 1800, 1200, 1200, 1200, 900, 900, 1200, 1200, 1800, 1800, 2700, 3600, 3600, 3600, 3600, 3600)
 }

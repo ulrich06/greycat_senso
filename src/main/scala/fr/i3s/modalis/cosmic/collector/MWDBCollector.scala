@@ -30,7 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzer}
+import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzer, SendingAnalyzerMock}
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
@@ -100,13 +100,12 @@ trait SensorsRouting extends HttpService with LazyLogging {
     get {
       respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
         path("sensors" / Segment / "sleep") { sensor =>
-          var sleepPeriod: Int = 0
           val result = SamplingAnalyzer(sensor, DataStorage.getGraph)
-          val now = new DateTime(System.currentTimeMillis)
           println("Result from analyzer: " + result)
           complete("sleep=" + Analyzer.getAdaptivePeriod(result).toString)
         } ~ path("sensors" / Segment / "sending") { sensor =>
-          val result = List(3600, 3600, 3600, 3600, 3600, 3600, 3600, 1800, 1800, 1200, 1200, 1200, 900, 900, 1200, 1200, 1800, 1800, 2700, 3600, 3600, 3600, 3600, 3600)
+          val result = SendingAnalyzer(sensor, DataStorage.getGraph)
+          println("Result from analyzer:" + result)
           complete("sending=" + Analyzer.getAdaptivePeriod(result).toString)
         } ~ path("sensors" / Segment / "compression") { sensor =>
           val returnObject = new DoubleReturn
@@ -262,7 +261,7 @@ trait CollectRouting extends HttpService with LazyLogging {
             DataStorage.update(sensordata, returnObject)
 
           respondWithMediaType(`application/json`) {
-            val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzer(sensordata.n, DataStorage.getGraph))
+            val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzerMock(sensordata.n, DataStorage.getGraph))
             val sleepPeriod: Int = Analyzer.getAdaptivePeriod(SamplingAnalyzer(sensordata.n, DataStorage.getGraph))
             complete(s"$send,$sleepPeriod")
           }
