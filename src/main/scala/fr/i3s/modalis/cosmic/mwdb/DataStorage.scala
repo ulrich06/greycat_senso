@@ -155,6 +155,7 @@ import org.mwg.task._
                 result.setProperty("value", Type.DOUBLE, sensorData.v.toDouble)
                 result.free()
                 returnObject.value.value = sensorData
+                returnObject.setState(true)
               }
             })
 
@@ -179,6 +180,7 @@ import org.mwg.task._
 
                 }
                 returnObject.value.value = mapResult
+                returnObject.setState(true)
               }
             })
             case None => ()
@@ -203,6 +205,7 @@ import org.mwg.task._
             case Some(node) => node.jump(date, new Callback[Node] {
               override def on(result: Node): Unit = {
                 returnObject.value.value = SensorData(result.get("name").toString, result.get("value").toString, result.time().toString)
+                returnObject.setState(true)
               }
             })
 
@@ -224,6 +227,7 @@ import org.mwg.task._
                   override def on(a: Array[Node]): Unit = a(0).asInstanceOf[CompressedSensorNode].extrapolate(new Callback[Double] {
                     override def on(a: Double): Unit = {
                       returnObject.value.value = SensorData(result.get("name").toString, a.toString, result.time().toString)
+                      returnObject.setState(true)
                     }
                   })
                 })

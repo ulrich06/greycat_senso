@@ -82,6 +82,7 @@ trait SettingsRouting extends HttpService with LazyLogging {
             complete {
               val arrayReturn = new ArrayStringReturn
               arrayReturn.value.value = scala.io.Source.fromURL(s"http://localhost:${DataStorage._httpPort}/fromIndexAll(sensors)/get(name)").mkString.replace("[", "").replace("]", "").replace("\n", "").split(",")
+              arrayReturn.setState(true)
               arrayReturn.value.value.toJson.toString()
             }
           }
@@ -100,9 +101,9 @@ trait SensorsRouting extends HttpService with LazyLogging {
           var sleepPeriod: Int = 0
           val result = SamplingAnalyzer(sensor, DataStorage.getGraph)
           val now = new DateTime(System.currentTimeMillis)
-          println(result)
+          println("Result from analyzer: " + result)
           val relevantHour = result.map(_._1).filter(_ < now.getHourOfDay).sorted.reverse.head
-          println(relevantHour)
+          println("Relevant hour: " + relevantHour)
           val relevantValue = result.find(_._1 == relevantHour).get
           if (now.getMinuteOfHour * 60 + now.getSecondOfMinute + relevantValue._2 < 3600) {
 
@@ -281,6 +282,7 @@ trait CollectRouting extends HttpService with LazyLogging {
             DataStorage.update(sensordata.copy(t = (System.currentTimeMillis / 1000).toString), returnObject)
           else
             DataStorage.update(sensordata, returnObject)
+
           respondWithMediaType(`application/json`) {
             complete(returnObject.value.value.toJson.toString())
           }

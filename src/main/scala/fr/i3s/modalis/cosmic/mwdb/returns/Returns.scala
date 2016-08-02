@@ -34,6 +34,11 @@ import play.api.libs.json.{JsObject, JsValue}
   */
 trait Return {
   val value: Field[_]
+  var _ready: Boolean = false
+
+  def isReady = _ready
+
+  def setState(b: Boolean) = _ready = b
 }
 
 class SensorDataReturn extends Return {
