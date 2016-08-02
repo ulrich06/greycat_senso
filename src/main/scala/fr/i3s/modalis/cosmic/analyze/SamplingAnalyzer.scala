@@ -34,7 +34,7 @@ import org.mwg.{Callback, Graph, Node}
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 16/06/2016.
   */
-object SamplingAnalyzer {
+object SamplingAnalyzer extends Analyzer {
 
 
   val ZONES = 3
@@ -58,7 +58,11 @@ object SamplingAnalyzer {
     // Convert the timestamps into dates
     val inflexionsDates = inflexions.map { v => new DateTime(v * 1000L) }
 
+    // Group by Year/Day of Year/Hour of day
     val inflexionsArray = inflexionsDates.groupBy(d => (d.get(DateTimeFieldType.year()), d.get(DateTimeFieldType.dayOfYear()))).map { v => v._1 -> v._2.groupBy(_.hourOfDay().getAsText.toInt) }
+
+
+    // Compute the elapsed time between two inflexions
     val inflexionsWithTS = inflexionsArray.map { v => v._1 -> v._2.map { d => d._1 -> d._2.map {
       _.secondOfDay().getAsText.toLong
     }.sorted.sliding(2).map {
@@ -68,17 +72,26 @@ object SamplingAnalyzer {
     }
     }
 
+    println("InflexionsWithTS: " + inflexionsWithTS)
+    //Merge the hour-sorted inflexions together
     val dtList = inflexionsWithTS.values.map {
       _.toSeq
     }.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
 
-    val minPeriod = dtList.map { v => (v._1, v._2.min.toInt, v._2.length) }.filterNot(_._2 == 0)
-    val minPeriodSorted = minPeriod.toList.sortBy(_._3).reverse
+    println("dtlist: " + dtList)
+    //Compute the median value
+    val minPeriod = dtList.map { v => (v._1, median(v._2).toInt, v._2.length) }.filterNot(_._2 == 0)
 
-    minPeriodSorted
+
+    (for (i <- 0 to 23) yield {
+      val res = minPeriod.find(_._1 == i)
+      if (res.isDefined) res.get._2 else 3600
+    }).toList
 
 
   }
+
+  def median(s: Seq[Long]) = s.sortWith(_ < _)(s.size / 2)
 
   def computingPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
     val list = inflexions.filter(v => zone contains v._1).map {
@@ -86,5 +99,4 @@ object SamplingAnalyzer {
     }
     list.sum / list.size
   }
-
 }

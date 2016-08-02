@@ -26,6 +26,7 @@
 
 package fr.i3s.modalis.cosmic.analyze
 
+
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns.ArrayIntReturn

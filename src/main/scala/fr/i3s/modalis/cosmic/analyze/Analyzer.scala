@@ -24,43 +24,27 @@
  * ***********************************************************************
  */
 
+package fr.i3s.modalis.cosmic.analyze
 
-package fr.i3s.modalis.cosmic
-
-import akka.actor.{ActorSystem, Props}
-import akka.io.IO
-import akka.pattern.ask
-import akka.util.Timeout
-import com.typesafe.config.ConfigFactory
-import fr.i3s.modalis.cosmic.collector.MWDBCollectorActor
-import fr.i3s.modalis.cosmic.converter.OrganizationalToGraph
-import fr.i3s.modalis.cosmic.mwdb.DataStorage
-import fr.i3s.modalis.cosmic.mwdb.nodes.SmartCampusPlugins
-import org.mwg.ml.MLPlugin
-import org.mwg.{GraphBuilder, LevelDBStorage}
-import spray.can.Http
-
-import scala.concurrent.duration._
+import org.joda.time.DateTime
+import org.mwg.Graph
 
 /**
-  * Init the DB and the HTTP service
-  *
-  * @author ${user.name}
+  * Created by Cyril Cecchinel - I3S Laboratory on 02/08/2016.
   */
-object Launch extends App {
-  val conf = ConfigFactory.load()
-  val serverPort = conf.getInt("port")
-  implicit val system = ActorSystem("on-spray-can")
+trait Analyzer {
 
-  val service = system.actorOf(Props[MWDBCollectorActor], "collector-service")
-  implicit val timeout = Timeout(15.seconds)
+  def apply(sensor: String, graph: Graph): List[Int]
 
 
-  DataStorage.init(OrganizationalToGraph(DemoSNT.catalog,
-    new GraphBuilder().withPlugin(new MLPlugin()).withPlugin(new SmartCampusPlugins()).
-      withStorage(new LevelDBStorage("demoSNT").useNative(false)).
-      saveEvery(10000L).
-      build()))
+}
 
-  IO(Http) ? Http.Bind(service, interface = "0.0.0.0", port = serverPort)
+object Analyzer {
+  def getAdaptivePeriod(table: List[Int]) = {
+    val now = new DateTime(System.currentTimeMillis)
+    if (now.getMinuteOfHour * 60 + now.getSecondOfMinute + table(now.getHourOfDay) < 3600)
+      table(now.getHourOfDay)
+    else
+      3600 - (now.getMinuteOfHour * 60 + now.getSecondOfMinute)
+  }
 }
