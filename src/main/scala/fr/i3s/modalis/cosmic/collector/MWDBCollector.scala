@@ -101,12 +101,16 @@ trait SensorsRouting extends HttpService with LazyLogging {
       respondWithHeader(RawHeader("Access-Control-Allow-Origin", "*")) {
         path("sensors" / Segment / "sleep") { sensor =>
           val result = SamplingAnalyzer(sensor, DataStorage.getGraph)
-          println("Result from analyzer: " + result)
-          complete("sleep=" + Analyzer.getAdaptivePeriod(result).toString)
+          logger.debug("Result from analyzer: " + result)
+          val period = Analyzer.getAdaptivePeriod(result)
+          logger.info(s"Sleep period: $period")
+          complete("sleep=" + period.toString)
         } ~ path("sensors" / Segment / "sending") { sensor =>
-          val result = SendingAnalyzer(sensor, DataStorage.getGraph)
-          println("Result from analyzer:" + result)
-          complete("sending=" + Analyzer.getAdaptivePeriod(result).toString)
+          val result = SendingAnalyzerMock(sensor, DataStorage.getGraph)
+          logger.debug("Result from analyzer:" + result)
+          val period = Analyzer.getAdaptivePeriod(result)
+          logger.info(s"Sending period: $period")
+          complete("sending=" + period.toString)
         } ~ path("sensors" / Segment / "compression") { sensor =>
           val returnObject = new DoubleReturn
           DataStorage.getCompressionRate(sensor, returnObject)
