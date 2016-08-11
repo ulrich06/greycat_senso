@@ -40,7 +40,7 @@ import org.mwg.{Graph, Node}
 object SendingAnalyzer extends Analyzer{
 
   def apply(sensor: String, graph: Graph) = {
-    println(s"Requested: $sensor")
+    logger.debug(s"Requested: $sensor")
     // Retrieve activity for the required sensor
     val activitiesReturn = new ArrayIntReturn()
     DataStorage.getActivity(sensor, activitiesReturn)
@@ -56,14 +56,10 @@ object SendingAnalyzer extends Analyzer{
 
 
     val nbDays = Days.daysBetween(new DateTime(timeLine.last).toLocalDate, new DateTime(timeLine.head).toLocalDate).getDays
-    println(s"Nb days: $nbDays")
-    println(s"Activities: $activities")
+    logger.debug(s"Nb days: $nbDays")
+    logger.debug(s"Activities: $activities")
     //Computed sending period (rounded to higher number) for sensor, in seconds
-    val res = activities.map { e => if (e != 0 && nbDays != 0) (60.0 / (e.toDouble / nbDays.toDouble)).toInt * 60 else 0 }
-    println(res)
-    res
-
-
+    activities.map { e => if (e != 0 && nbDays != 0) (60.0 / (e.toDouble / nbDays.toDouble)).toInt * 60 else 0 }
   }
 
 }

@@ -26,13 +26,14 @@
 
 package fr.i3s.modalis.cosmic.analyze
 
+import com.typesafe.scalalogging.LazyLogging
 import org.joda.time.DateTime
 import org.mwg.Graph
 
 /**
   * Created by Cyril Cecchinel - I3S Laboratory on 02/08/2016.
   */
-trait Analyzer {
+trait Analyzer extends LazyLogging{
 
   def apply(sensor: String, graph: Graph): List[Int]
 

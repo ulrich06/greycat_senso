@@ -38,11 +38,12 @@ object SamplingAnalyzer extends Analyzer {
 
 
   val ZONES = 3
+  val MIN = 60
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
 
   def apply(sensor: String, graph: Graph) = {
-    println(s"Requested: $sensor")
+    logger.debug(s"Requested: $sensor")
     // Retrieve inflexions for the required sensor
     var inflexions: List[Long] = 0L :: Nil
     graph.newTask().fromIndex("nodes", s"name = $sensor").`then`(new Action {
@@ -72,15 +73,13 @@ object SamplingAnalyzer extends Analyzer {
     }
     }
 
-    println("InflexionsWithTS: " + inflexionsWithTS)
     //Merge the hour-sorted inflexions together
     val dtList = inflexionsWithTS.values.map {
       _.toSeq
     }.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
 
-    println("dtlist: " + dtList)
     //Compute the median value
-    val minPeriod = dtList.map { v => (v._1, median(v._2).toInt, v._2.length) }.filterNot(_._2 == 0)
+    val minPeriod = dtList.map { v => (v._1, median(v._2.filterNot(_ < MIN)).toInt, v._2.length) }.filterNot(_._2 == 0)
 
 
     (for (i <- 0 to 23) yield {
@@ -91,7 +90,10 @@ object SamplingAnalyzer extends Analyzer {
 
   }
 
-  def median(s: Seq[Long]) = s.sortWith(_ < _)(s.size / 2)
+  def median(s: Seq[Long]) = {
+    logger.debug("List size: " + s.size + " - " + s)
+    s.sortWith(_ < _)(s.size / 2)
+  }
 
   def computingPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
     val list = inflexions.filter(v => zone contains v._1).map {
