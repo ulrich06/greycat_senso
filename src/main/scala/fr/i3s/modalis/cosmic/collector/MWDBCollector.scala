@@ -265,9 +265,11 @@ trait CollectRouting extends HttpService with LazyLogging {
             DataStorage.update(sensordata, returnObject)
 
           respondWithMediaType(`application/json`) {
-            val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzerMock(sensordata.n, DataStorage.getGraph))
-            val sleepPeriod: Int = Analyzer.getAdaptivePeriod(SamplingAnalyzer(sensordata.n, DataStorage.getGraph))
-            complete(s"$send,$sleepPeriod")
+            if (!(sensordata.n contains "VCC")) {
+              val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzerMock(sensordata.n, DataStorage.getGraph))
+              val sleepPeriod: Int = Analyzer.getAdaptivePeriod(SamplingAnalyzer(sensordata.n, DataStorage.getGraph))
+              complete(s"$send,$sleepPeriod")
+            } else complete("0,0")
           }
         }
       }
