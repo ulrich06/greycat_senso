@@ -56,8 +56,8 @@ object SamplingAnalyzer extends Analyzer {
 
 
 
-    // Convert the timestamps into dates
-    val inflexionsDates = inflexions.map { v => new DateTime(v * 1000L) }
+    // Convert the timestamps into dates and filter abnormal dates
+    val inflexionsDates = inflexions.map { v => new DateTime(v * 1000L) }.filterNot(_.getMillis == 0)
 
     // Group by Year/Day of Year/Hour of day
     val inflexionsArray = inflexionsDates.groupBy(d => (d.get(DateTimeFieldType.year()), d.get(DateTimeFieldType.dayOfYear()))).map { v => v._1 -> v._2.groupBy(_.hourOfDay().getAsText.toInt) }
@@ -91,7 +91,6 @@ object SamplingAnalyzer extends Analyzer {
   }
 
   def median(s: Seq[Long]) = {
-    logger.debug("List size: " + s.size + " - " + s)
     s.sortWith(_ < _)(s.size / 2)
   }
 
