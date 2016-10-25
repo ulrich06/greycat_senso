@@ -74,7 +74,7 @@ object RealTimeSmartCampusImporter {
 
 object HistorySmartCampusImporterFromURL {
 
-  val TARGET = "http://0.0.0.0:11000/collect"
+  val TARGET = "http://192.168.1.18:11000/collect"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
   def apply(lstSensors: List[String], tBegin: String, tEnd: String) = {
@@ -83,11 +83,12 @@ object HistorySmartCampusImporterFromURL {
         override def run(): Unit = {
           val source = Json.parse(scala.io.Source.fromURL(PATTERN_SENSOR(sensor, tBegin.replace(" ", "%20"), tEnd.replace(" ", "%20"))).mkString)
           val name = (source \ "id").as[String]
+          println(source)
           for (record <- (source \ "values").as[List[JsObject]]) {
             val date = (record \ "date").as[String]
             val value = (record \ "value").as[String]
-            val post = new HttpPost(TARGET)
-            DataStorage.update(SensorData(name, value, date), new SensorDataReturn)
+            println(s"Posting $name ($value - $date)")
+            RestImporter(SensorData(name, value, date))
           }
         }
       }).start()
@@ -99,7 +100,6 @@ object HistorySmartCampusImporterFromURL {
 
 object HistorySmartCampusImporterFromFile {
 
-  val TARGET = "http://kloud4:11000/collect"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
   def apply(pathToFile: String) = {
@@ -109,15 +109,11 @@ object HistorySmartCampusImporterFromFile {
     for (record <- (source \ "values").as[List[JsObject]]) {
       val date = (record \ "date").as[String]
       val value = (record \ "value").as[String]
-      val post = new HttpPost(TARGET)
-      post.setHeader("Content-type", "application/json")
-      post.setEntity(new StringEntity(SensorDataJsonSupport.format.write(SensorData(name, value, date)).toString()))
-      val client = HttpClientBuilder.create().build()
-      client.execute(post)
+      RestImporter(SensorData(name, value, date))
     }
   }
 }
 
 object DoIt extends App {
-  HistorySmartCampusImporterFromFile("/Users/cyrilcecchinel/Desktop/SmartCampus/datasets/TEMP_443V_JULY.json")
+  HistorySmartCampusImporterFromURL(List("TEMP_442V"), "2016-08-22 00:00:00", "2016-09-05 00:00:00")
 }
