@@ -74,9 +74,14 @@ object SamplingAnalyzer extends Analyzer {
     }
 
     //Merge the hour-sorted inflexions together
-    val dtList = inflexionsWithTS.values.map {
-      _.toSeq
-    }.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
+    var dtList:Map[Int, List[Long]] = null
+    try {
+      dtList = inflexionsWithTS.values.map {_.toSeq}.reduce(_ ++ _).groupBy(_._1).mapValues(_.map(_._2).toList.flatten)
+    }
+    catch {
+      // Handling an empty reduceLeft
+      case e:UnsupportedOperationException => dtList = inflexionsWithTS.values.map{_.toSeq}.toList.flatten.toMap
+    }
 
     //Compute the median value
     val minPeriod = dtList.map { v => (v._1, median(v._2.filterNot(_ < MIN)).toInt, v._2.length) }.filterNot(_._2 == 0)
@@ -91,7 +96,12 @@ object SamplingAnalyzer extends Analyzer {
   }
 
   def median(s: Seq[Long]) = {
-    s.sortWith(_ < _)(s.size / 2)
+    s.size match {
+      case 0 => 0L
+      case 1 => s.head
+      case _ => s.sortWith(_ < _)(s.size / 2)
+    }
+
   }
 
   def computingPeriod(zone: List[Int], inflexions: List[(Int, Int)]): Int = {
