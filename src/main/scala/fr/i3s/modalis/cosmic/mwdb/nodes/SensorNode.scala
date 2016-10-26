@@ -126,7 +126,7 @@ abstract case class SensorNode(p_world: Long, p_time: Long, p_id: Long, p_graph:
             override def on(a: Boolean): Unit = {}
           })
           _node.extrapolate(new Callback[java.lang.Double] {
-            override def on(a: java.lang.Double): Unit = println(s"Learnt $a (${_node.toString}")
+            override def on(a: java.lang.Double): Unit = println(s"Learnt $a ${_node.toString} - Precision: ${get(SensorNode.PRECISION_KEY)}")
           })
         }
       })
