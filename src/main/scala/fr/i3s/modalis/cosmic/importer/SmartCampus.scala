@@ -26,12 +26,9 @@
 
 package fr.i3s.modalis.cosmic.importer
 
-import fr.i3s.modalis.cosmic.collector.{SensorData, SensorDataJsonSupport}
+import fr.i3s.modalis.cosmic.collector.SensorData
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.returns.SensorDataReturn
-import org.apache.http.client.methods.HttpPost
-import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.HttpClientBuilder
 import play.api.libs.json.{JsObject, Json}
 
 import scala.collection.mutable
@@ -74,7 +71,7 @@ object RealTimeSmartCampusImporter {
 
 object HistorySmartCampusImporterFromURL {
 
-  val TARGET = "http://192.168.1.18:11000/collect"
+  val TARGET = "http://0.0.0.0:11000/collect"
   val DATE_FORMAT = "yyyy-mm-dd kk:mm:ss"
 
   def apply(lstSensors: List[String], tBegin: String, tEnd: String) = {
@@ -115,5 +112,5 @@ object HistorySmartCampusImporterFromFile {
 }
 
 object DoIt extends App {
-  HistorySmartCampusImporterFromURL(List("TEMP_442V"), "2016-08-22 00:00:00", "2016-09-05 00:00:00")
+  HistorySmartCampusImporterFromURL(List("TEMP_443V"), "2016-12-01 00:00:00", "2016-12-15 23:59:59")
 }

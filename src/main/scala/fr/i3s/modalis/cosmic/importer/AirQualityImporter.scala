@@ -29,8 +29,6 @@ package fr.i3s.modalis.cosmic.importer
 import java.text.SimpleDateFormat
 
 import fr.i3s.modalis.cosmic.collector.SensorData
-import org.mwg.Graph
-import org.mwg.csv.CSVImporter
 
 import scala.io.Source
 

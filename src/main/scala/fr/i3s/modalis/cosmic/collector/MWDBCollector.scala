@@ -30,7 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzer, SendingAnalyzerMock}
+import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzerMock}
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._

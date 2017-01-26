@@ -24,7 +24,7 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic
+package fr.i3s.modalis.cosmic.infrastructures
 
 import fr.i3s.modalis.cosmic.organizational._
 import fr.i3s.modalis.cosmic.organizational.shared.{DoubleType, IntegerType}

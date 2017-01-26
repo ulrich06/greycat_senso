@@ -38,7 +38,7 @@ object SamplingAnalyzer extends Analyzer {
 
 
   val ZONES = 3
-  val MIN = 60
+  val MIN = 0
 
   def classification(v: Int) = Math.floor(v / ZONES).toInt
 
@@ -83,9 +83,12 @@ object SamplingAnalyzer extends Analyzer {
       case e:UnsupportedOperationException => dtList = inflexionsWithTS.values.map{_.toSeq}.toList.flatten.toMap
     }
 
+
+    dtList.foreach(e => println(e._1 + "\t" + e._2.mkString("\t")))
     //Compute the median value
     val minPeriod = dtList.map { v => (v._1, median(v._2.filterNot(_ < MIN)).toInt, v._2.length) }.filterNot(_._2 == 0)
 
+    minPeriod.foreach(e => println(e._1 + "\t" + e._2 + "\t" + e._3))
 
     (for (i <- 0 to 23) yield {
       val res = minPeriod.find(_._1 == i)
@@ -95,11 +98,36 @@ object SamplingAnalyzer extends Analyzer {
 
   }
 
+  def minDeltaT(s:Seq[Long]) = {
+    s.size match {
+      case 0 => 3600L
+      case 1 => List(3600L - s.head, s.head).max
+      case _ => s.sortWith(_ < _).sliding(2).map { case Seq(x, y, _*) => y - x }.toList.min
+    }
+  }
+
+
+
+
+  def mean(s:Seq[Long]) = {
+
+    s.size match {
+      case 0 => 3600L
+      case 1 => List(3600L - s.head, s.head).max
+      case _ => s.sum / s.size
+    }
+
+
+  }
+
   def median(s: Seq[Long]) = {
     s.size match {
-      case 0 => 0L
-      case 1 => s.head
-      case _ => s.sortWith(_ < _)(s.size / 2)
+      case 0 => 3600L
+      case 1 => List(3600L - s.head, s.head).max
+      case _ => {
+        val (lower, upper) = s.sortWith(_<_).splitAt(s.size / 2)
+        if (s.size % 2 == 0) (lower.last + upper.head) / 2 else upper.head
+      }
     }
 
   }

@@ -24,7 +24,7 @@
  * ***********************************************************************
  */
 
-package fr.i3s.modalis.cosmic
+package fr.i3s.modalis.cosmic.infrastructures
 
 import fr.i3s.modalis.cosmic.organizational._
 import fr.i3s.modalis.cosmic.organizational.shared.{DoubleType, IntegerType}
@@ -37,9 +37,11 @@ object TheLabExample {
 
 
   val SC_temperature_outdoor = Observation("TEMPERATURE_OUTDOOR", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(-20.0)), Some(DoubleType(50.0))))), Some(1.0))
-  val SC_temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(50.0))))), Some(2.0))
+  val SC_temperature_indoor = Observation("TEMPERATURE_INDOOR", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(50.0))))), Some(0.5))
   val SC_light = Observation("LIGHT", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(1023.0))))))
   val SC_noise = Observation("NOISE", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(1023.0))))))
+  val SC_raw = Observation("RAW", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(1023.0))))))
+
   // val SC_opening = Observation("OPENING", timefield, Set(AtomicField("v", Discrete(Set(StringType("OPEN"), StringType("CLOSED"))))))
   // val SC_state = Observation("STATE", timefield, Set(AtomicField("v", Discrete(Set(StringType("ON"), StringType("OFF"))))))
   val SC_power = Observation("POWER", timefield, Set(AtomicField("v", Continuous(Some(DoubleType(0.0)), Some(DoubleType(2500.0))))), Some(50.0))
@@ -102,7 +104,7 @@ object TheLabExample {
             Periodic("TEMP_443V", 300, "http://smartcampus.unice.fr/sensors/TEMP_442V/data/", SC_temperature_indoor),
             Periodic("AC_443", 300, "http://smartcampus.unice.fr/sensors/AC_443/data/", SC_temperature_indoor),
             //EventBased("WINDOW443STATE", "onChange", "http://smartcampus.unice.fr/sensors/WINDOW443STATE/data/", SC_opening),
-            //EventBased("PRESENCE_443", "onChange", "http://smartcampus.unice.fr/sensors/PRESENCE_443/data/", SC_opening),
+            EventBased("PRESENCE_443", "onChange", "http://smartcampus.unice.fr/sensors/PRESENCE_443/data/", SC_raw),
             EventBased("Coffee_power", "onRaise", "http://smartcampus.unice.fr/sensors/Coffee_power/data/", SC_power),
             EventBased("Office_443_Power", "onRaise", "http://smartcampus.unice.fr/sensors/Office_443_Power/data/", SC_power)
             // Periodic("HEATING_443", 300, "http://smartcampus.unice.fr/sensors/HEATING_443/data/", SC_state),
@@ -124,5 +126,5 @@ object TheLabExample {
     ))
   ))
 
-  val catalog = Catalog("SmartCampus", infrastructure, Set(SC_temperature_indoor, SC_temperature_outdoor, SC_light, SC_noise, SC_power))
+  val catalog = Catalog("SmartCampus", infrastructure, Set(SC_temperature_indoor, SC_temperature_outdoor, SC_light, SC_noise, SC_power, SC_raw))
 }
