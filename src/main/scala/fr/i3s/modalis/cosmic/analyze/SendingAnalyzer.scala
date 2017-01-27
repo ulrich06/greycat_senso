@@ -59,7 +59,21 @@ object SendingAnalyzer extends Analyzer{
     logger.debug(s"Nb days: $nbDays")
     logger.debug(s"Activities: $activities")
     //Computed sending period (rounded to higher number) for sensor, in seconds
-    activities.map { e => if (e != 0 && nbDays != 0) (60.0 / (e.toDouble / nbDays.toDouble)).toInt * 60 else 0 }
+    val result = activities.map { e => if (e != 0 && nbDays != 0){
+
+      val result = (3600 / (e.toDouble / nbDays.toDouble)).toInt
+      logger.debug("e/nbdays/result: " + e + "/" + nbDays + "/" + result)
+      result
+    }  else {
+      logger.debug("e/nbdays: " + e + "/" + nbDays)
+      0
+    }
+
+    }
+    for (i <- result.indices){
+      println(i + "\t" + result(i))
+    }
+    result
   }
 
 }

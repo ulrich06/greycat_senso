@@ -30,7 +30,7 @@ import java.text.{ParseException, SimpleDateFormat}
 
 import akka.actor.{Actor, ActorRefFactory}
 import com.typesafe.scalalogging.LazyLogging
-import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzerMock}
+import fr.i3s.modalis.cosmic.analyze.{Analyzer, SamplingAnalyzer, SendingAnalyzer}
 import fr.i3s.modalis.cosmic.mwdb.DataStorage
 import fr.i3s.modalis.cosmic.mwdb.nodes.SensorNode
 import fr.i3s.modalis.cosmic.mwdb.returns._
@@ -106,7 +106,7 @@ trait SensorsRouting extends HttpService with LazyLogging {
           logger.info(s"Sleep period: $period")
           complete("sleep=" + period.toString)
         } ~ path("sensors" / Segment / "sending") { sensor =>
-          val result = SendingAnalyzerMock(sensor, DataStorage.getGraph)
+          val result = SendingAnalyzer(sensor, DataStorage.getGraph)
           logger.debug("Result from analyzer:" + result)
           val period = Analyzer.getAdaptivePeriod(result)
           logger.info(s"Sending period: $period")
@@ -266,7 +266,7 @@ trait CollectRouting extends HttpService with LazyLogging {
 
           respondWithMediaType(`application/json`) {
             if (!(sensordata.n contains "VCC")) {
-              val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzerMock(sensordata.n, DataStorage.getGraph))
+              val send: Int = Analyzer.getAdaptivePeriod(SendingAnalyzer(sensordata.n, DataStorage.getGraph))
               val sleepPeriod: Int = Analyzer.getAdaptivePeriod(SamplingAnalyzer(sensordata.n, DataStorage.getGraph))
               complete(s"$send,$sleepPeriod")
             } else complete("0,0")
